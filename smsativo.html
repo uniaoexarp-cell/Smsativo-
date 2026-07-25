@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SmSAtivo Web | Painel Premium de Números Virtuais</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts (Montserrat & JetBrains Mono para códigos) -->
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- FontAwesome para Ícones Profissionais -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background-color: #0B0C10;
+            color: #FFFFFF;
+        }
+        
+        .font-mono-custom {
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        /* Efeitos Glow de Fundo e Texto */
+        .neon-text-green {
+            text-shadow: 0 0 15px rgba(0, 255, 102, 0.6);
+        }
+        .neon-text-cyan {
+            text-shadow: 0 0 15px rgba(0, 240, 255, 0.6);
+        }
+
+        /* Estrutura Glassmorphism para os Cards Principais */
+        .glass-card {
+            background: linear-gradient(135deg, rgba(31, 40, 51, 0.7) 0%, rgba(21, 27, 36, 0.8) 100%);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(0, 240, 255, 0.08);
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .glass-card:hover {
+            transform: translateY(-4px);
+            border-color: rgba(0, 255, 102, 0.4);
+            box-shadow: 0 10px 30px rgba(0, 255, 102, 0.1);
+        }
+
+        /* ========================================== */
+        /* ENGENHARIA DE BOTÕES ULTRA PROFISSIONAIS  */
+        /* ========================================== */
+        
+        /* 1. Botão Secundário / Ação de Compra de Serviço */
+        .btn-action-cyber {
+            background: #0B0C10;
+            border: 1px solid rgba(0, 240, 255, 0.4);
+            color: #E5E7EB;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-action-cyber:hover {
+            background: #00FF66 !important;
+            color: #0B0C10 !important;
+            border-color: #00FF66 !important;
+            font-weight: 700;
+            box-shadow: 0 0 20px rgba(0, 255, 102, 0.5);
+            transform: scale(1.02);
+        }
+        
+        .btn-action-cyber:active {
+            transform: scale(0.98);
+        }
+
+        /* 2. Botão Primário de Destaque (Gerear Pix / Adicionar Saldo) */
+        .btn-primary-glow {
+            background: linear-gradient(90deg, #00F0FF 0%, #00FF66 100%);
+            color: #0B0C10;
+            font-weight: 700;
+            box-shadow: 0 4px 15px rgba(0, 240, 255, 0.25);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .btn-primary-glow:hover {
+            transform: scale(1.03);
+            box-shadow: 0 0 25px rgba(0, 255, 102, 0.6);
+            letter-spacing: 0.5px;
+        }
+        
+        .btn-primary-glow:active {
+            transform: scale(0.97);
+        }
+
+        /* 3. Botões Utilitários de Tabela (Copiar / Cancelar) */
+        .btn-table-util {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(197, 198, 199, 0.15);
+            transition: all 0.2s ease;
+        }
+        .btn-table-util:hover {
+            background: rgba(0, 240, 255, 0.1);
+            border-color: #00F0FF;
+            color: #00F0FF;
+        }
+
+        /* Customização Avançada de Scroll */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0B0C10;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #1F2833;
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #00FF66;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col md:flex-row antialiased">
+
+    <!-- ========================================== -->
+    <!-- MENU LATERAL (SIDEBAR PREMIUM)             -->
+    <!-- ========================================== -->
+    <aside class="w-full md:w-80 bg-[#1F2833] p-6 border-b md:border-b-0 md:border-r border-[#00F0FF]/10 flex flex-col justify-between z-10">
+        <div>
+            <!-- Header do Sistema -->
+            <div class="flex items-center gap-3 mb-8 select-none">
+                <div class="w-9 h-9 rounded-xl bg-[#00FF66]/10 flex items-center justify-center border border-[#00FF66]/30">
+                    <i class="fa-solid fa-bolt text-[#00FF66] text-xl neon-text-green"></i>
+                </div>
+                <h1 class="text-xl font-extrabold tracking-wider">SmSAtivo <span class="text-[#00F0FF]">Web</span></h1>
+            </div>
+
+            <!-- Painel de Status do Usuário -->
+            <div class="bg-[#0B0C10]/60 rounded-xl p-5 mb-6 border border-gray-800/50">
+                <div class="flex items-center justify-between mb-4">
+                    <div>
+                        <p class="text-[10px] text-gray-500 uppercase tracking-widest font-bold">Cliente Logado</p>
+                        <p class="text-xs font-semibold text-gray-300 truncate w-40">patrick028@painel.com</p>
+                    </div>
+                    <span class="w-2 h-2 rounded-full bg-[#00FF66] animate-pulse"></span>
+                </div>
+                
+                <p class="text-[10px] text-gray-500 uppercase tracking-widest font-bold mb-0.5">Saldo Disponível</p>
+                <p class="text-3xl font-black text-[#00FF66] neon-text-green tracking-tight">R$ 52,50</p>
+            </div>
+
+            <!-- Seletores Globais Estilizados -->
+            <div class="space-y-4 mb-6">
+                <div>
+                    <label class="block text-[10px] text-gray-400 uppercase font-bold tracking-wider mb-2">🌍 Região de Cobertura</label>
+                    <select class="w-full bg-[#0B0C10] border border-gray-700/60 text-white rounded-lg px-3 py-2.5 text-xs font-semibold focus:outline-none focus:border-[#00F0FF] cursor-pointer">
+                        <option>Brasil 🇧🇷</option>
+                        <option>Estados Unidos 🇺🇸</option>
+                        <option>Portugal 🇵🇹</option>
+                        <option>Argentina 🇦🇷</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-[10px] text-gray-400 uppercase font-bold tracking-wider mb-2">📡 Pool de Operadoras</label>
+                    <select class="w-full bg-[#0B0C10] border border-gray-700/60 text-white rounded-lg px-3 py-2.5 text-xs font-semibold focus:outline-none focus:border-[#00F0FF] cursor-pointer">
+                        <option>Automático (Melhor Rota de Entrega) 🚀</option>
+                        <option>Alpha (Servidor Rápido)</option>
+                        <option>Beta (Alta Disponibilidade)</option>
+                        <option>Gamma (SMS Alternativo)</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Sistema de Recarga Unificado -->
+            <div class="border-t border-gray-800 pt-5">
+                <h3 class="text-[10px] text-gray-400 uppercase font-bold tracking-wider mb-3"><i class="fa-solid fa-wallet mr-2 text-[#00F0FF]"></i>Adicionar Fundos</h3>
+                <div class="flex gap-2 mb-3">
+                    <span class="bg-[#0B0C10] border border-gray-700/60 text-gray-400 rounded-lg px-3.5 py-2.5 text-xs font-bold flex items-center">R$</span>
+                    <input type="number" value="20.00" class="w-full bg-[#0B0C10] border border-gray-700/60 text-white font-bold rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-[#00F0FF]">
+                </div>
+                <!-- Botão Primário Glow -->
+                <button class="w-full py-3 px-4 rounded-xl btn-primary-glow flex items-center justify-center gap-2 text-xs font-bold uppercase tracking-wider">
+                    <i class="fa-solid fa-qrcode text-sm"></i> Gerar Cobrança Pix
+                </button>
+            </div>
+        </div>
+
+        <!-- Rodapé / Suporte -->
+        <div class="mt-8 pt-4 border-t border-gray-800 text-center md:text-left">
+            <a href="https://t.me/Til_7_1" target="_blank" class="inline-flex items-center gap-2 text-xs text-gray-400 hover:text-[#00F0FF] transition-all duration-300">
+                <i class="fa-brands fa-telegram text-base text-[#00F0FF] neon-text-cyan"></i> Suporte Técnico: <span class="underline font-semibold">@Til_7_1</span>
+            </a>
+        </div>
+    </aside>
+
+    <!-- ========================================== -->
+    <!-- ÁREA DE OPERAÇÕES PRINCIPAL                -->
+    <!-- ========================================== -->
+    <main class="flex-1 p-6 md:p-10 space-y-8 overflow-y-auto">
+        
+        <!-- Boas-vindas / Título -->
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-gray-800 pb-6">
+            <div>
+                <h2 class="text-2xl md:text-3xl font-black text-[#00FF66] neon-text-green tracking-tight uppercase">🚀 Terminal de Requisições</h2>
+                <p class="text-gray-400 text-xs md:text-sm mt-1">Gere chips temporários e receba os códigos de verificação de aplicativos instantaneamente na tela.</p>
+            </div>
+            <!-- Status do Sistema -->
+            <div class="flex items-center gap-2 self-start md:self-auto bg-[#1F2833] px-3 py-1.5 rounded-lg border border-gray-800 text-xs">
+                <span class="w-2 h-2 rounded-full bg-[#00FF66] shadow-[0_0_8px_#00FF66]"></span>
+                <span class="text-gray-300 font-semibold text-[11px] uppercase tracking-wider">Servidores Online</span>
+            </div>
+        </div>
+
+        <!-- GRID DE SERVIÇOS (BOTÕES REFORMULADOS) -->
+        <section class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">
+            
+            <!-- WhatsApp -->
+            <div class="glass-card rounded-xl p-5 flex flex-col justify-between h-44">
+                <div class="flex justify-between items-start">
+                    <div class="flex items-center gap-3">
+                        <div class="w-11 h-11 rounded-xl bg-green-500/10 flex items-center justify-center text-green-400 text-xl border border-green-500/20"><i class="fa-brands fa-whatsapp"></i></div>
+                        <div>
+                            <h4 class="font-bold text-base text-gray-100">WhatsApp</h4>
+                            <p class="text-[11px] text-gray-400">Contingência e Disparos</p>
+                        </div>
+                    </div>
+                    <span class="text-sm font-extrabold text-[#00F0FF] bg-[#00F0FF]/10 px-2.5 py-1 rounded-md border border-[#00F0FF]/20">R$ 7,50</span>
+                </div>
+                <button class="w-full py-2.5 px-4 rounded-lg btn-action-cyber text-xs font-semibold flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-plus text-[10px]"></i> Adquirir Linha WhatsApp
+                </button>
+            </div>
+
+            <!-- Telegram -->
+            <div class="glass-card rounded-xl p-5 flex flex-col justify-between h-44">
+                <div class="flex justify-between items-start">
+                    <div class="flex items-center gap-3">
+                        <div class="w-11 h-11 rounded-xl bg-blue-500/10 flex items-center justify-center text-blue-400 text-xl border border-blue-500/20"><i class="fa-brands fa-telegram"></i></div>
+                        <div>
+                            <h4 class="font-bold text-base text-gray-100">Telegram</h4>
+                            <p class="text-[11px] text-gray-400">Canais e Automações</p>
+                        </div>
+                    </div>
+                    <span class="text-sm font-extrabold text-[#00F0FF] bg-[#00F0FF]/10 px-2.5 py-1 rounded-md border border-[#00F0FF]/20">R$ 6,00</span>
+                </div>
+                <button class="w-full py-2.5 px-4 rounded-lg btn-action-cyber text-xs font-semibold flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-plus text-[10px]"></i> Adquirir Linha Telegram
+                </button>
+            </div>
+
+            <!-- Google -->
+            <div class="glass-card rounded-xl p-5 flex flex-col justify-between h-44">
+                <div class="flex justify-between items-start">
+                    <div class="flex items-center gap-3">
+                        <div class="w-11 h-11 rounded-xl bg-red-500/10 flex items-center justify-center text-red-400 text-xl border border-red-500/20"><i class="fa-brands fa-google"></i></div>
+                        <div>
+                            <h4 class="font-bold text-base text-gray-100">Google / YouTube</h4>
+                            <p class="text-[11px] text-gray-400">Criação de Contas GMail</p>
+                        </div>
+                    </div>
+                    <span class="text-sm font-extrabold text-[#00F0FF] bg-[#00F0FF]/10 px-2.5 py-1 rounded-md border border-[#00F0FF]/20">R$ 4,50</span>
+                </div>
+                <button class="w-full py-2.5 px-4 rounded-lg btn-action-cyber text-xs font-semibold flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-plus text-[10px]"></i> Adquirir Linha Google
+                </button>
+            </div>
+
+            <!-- Instagram -->
+            <div class="glass-card rounded-xl p-5 flex flex-col justify-between h-44">
+                <div class="flex justify-between items-start">
+                    <div class="flex items-center gap-3">
+                        <div class="w-11 h-11 rounded-xl bg-pink-500/10 flex items-center justify-center text-pink-400 text-xl border border-pink-500/20"><i class="fa-brands fa-instagram"></i></div>
+                        <div>
+                            <h4 class="font-bold text-base text-gray-100">Instagram</h4>
+                            <p class="text-[11px] text-gray-400">Painéis de Engajamento</p>
+                        </div>
+                    </div>
+                    <span class="text-sm font-extrabold text-[#00F0FF] bg-[#00F0FF]/10 px-2.5 py-1 rounded-md border border-[#00F0FF]/20">R$ 3,50</span>
+                </div>
+                <button class="w-full py-2.5 px-4 rounded-lg btn-action-cyber text-xs font-semibold flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-plus text-[10px]"></i> Adquirir Linha Instagram
+                </button>
+            </div>
+
+            <!-- TikTok -->
+            <div class="glass-card rounded-xl p-5 flex flex-col justify-between h-44">
+                <div class="flex justify-between items-start">
+                    <div class="flex items-center gap-3">
+                        <div class="w-11 h-11 rounded-xl bg-purple-500/10 flex items-center justify-center text-purple-400 text-xl border border-purple-500/20"><i class="fa-brands fa-tiktok"></i></div>
+                        <div>
+                            <h4 class="font-bold text-base text-gray-100">TikTok</h4>
+                            <p class="text-[11px] text-gray-400">Farm de Contas / Contratos</p>
+                        </div>
+                    </div>
+                    <span class="text-sm font-extrabold text-[#00F0FF] bg-[#00F0FF]/10 px-2.5 py-1 rounded-md border border-[#00F0FF]/20">R$ 3,00</span>
+                </div>
+                <button class="w-full py-2.5 px-4 rounded-lg btn-action-cyber text-xs font-semibold flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-plus text-[10px]"></i> Adquirir Linha TikTok
+                </button>
+            </div>
+
+            <!-- Discord -->
+            <div class="glass-card rounded-xl p-5 flex flex-col justify-between h-44">
+                <div class="flex justify-between items-start">
+                    <div class="flex items-center gap-3">
+                        <div class="w-11 h-11 rounded-xl bg-indigo-500/10 flex items-center justify-center text-indigo-400 text-xl border border-indigo-500/20"><i class="fa-brands fa-discord"></i></div>
+                        <div>
+                            <h4 class="font-bold text-base text-gray-100">Discord</h4>
+                            <p class="text-[11px] text-gray-400">Verificações de Perfis</p>
+                        </div>
+                    </div>
+                    <span class="text-sm font-extrabold text-[#00F0FF] bg-[#00F0FF]/10 px-2.5 py-1 rounded-md border border-[#00F0FF]/20">R$ 2,50</span>
+                </div>
+                <button class="w-full py-2.5 px-4 rounded-lg btn-action-cyber text-xs font-semibold flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-plus text-[10px]"></i> Adquirir Linha Discord
+                </button>
+            </div>
+
+        </section>
+
+        <!-- ========================================== -->
+        <!-- QUADRO DE LOGS E MONITORAMENTO DE COMPRAS   -->
+        <!-- ========================================== -->
+        <section class="space-y-6">
+            
+            <!-- Monitoramento em Andamento -->
+            <div class="bg-[#1F2833]/30 border border-gray-800 rounded-xl p-5">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="flex items-center gap-2.5">
+                        <span class="flex h-2 w-2 relative">
+                            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+                            <span class="relative inline-flex rounded-full h-2 w-2 bg-amber-500"></span>
+                        </span>
+                        <h3 class="font-bold text-sm text-gray-200 uppercase tracking-wider">Aguardando Recebimento (Tempo Real)</h3>
+                    </div>
+                    <span class="text-[10px] text-gray-500 font-mono-custom">REFRESH AUT.</span>
+                </div>
+                
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse text-xs text-gray-300">
+                        <thead>
+                            <tr class="border-b border-gray-800 text-gray-400 font-bold uppercase text-[10px] tracking-wider">
+                                <th class="pb-3">Horário</th>
+                                <th class="pb-3">Aplicação</th>
+                                <th class="pb-3">País</th>
+                                <th class="pb-3">Número Gerado</th>
+                                <th class="pb-3 text-amber-400">Status da Rede</th>
+                                <th class="pb-3 text-right">Ações / Token</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-800/40 font-medium">
+                            <tr class="hover:bg-white/[0.02] transition-colors">
+                                <td class="py-4 text-gray-500 font-mono-custom">10:47:12</td>
+                                <td class="py-4 font-bold text-gray-200"><i class="fa-brands fa-whatsapp text-green-400 mr-2"></i>WhatsApp</td>
+                                <td class="py-4 text-gray-400">Brasil</td>
+                                <td class="py-4 font-mono-custom text-[#00F0FF]">+5585994218841</td>
+                                <td class="py-4 text-amber-400 font-bold animate-pulse"><i class="fa-solid fa-spinner animate-spin mr-1.5"></i>Escutando SMS...</td>
+                                <td class="py-4 text-right">
+                                    <div class="inline-flex gap-1.5">
+                                        <!-- Botões Utilitários de Controle -->
+         
