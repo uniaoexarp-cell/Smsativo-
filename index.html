@@ -15,7 +15,7 @@
         .logo-title { cursor: pointer; user-select: none; display: inline-block; transition: transform 0.1s; }
         .logo-title:active { transform: scale(0.97); }
         
-        .btn { background: #0284c7; color: white; border: none; padding: 12px 18px; border-radius: 8px; cursor: pointer; font-weight: bold; width: 100%; font-size: 14px; }
+        .btn { background: #0284c7; color: white; border: none; padding: 12px 18px; border-radius: 8px; cursor: pointer; font-weight: bold; width: 100%; font-size: 14px; margin-top: 5px; }
         .btn:hover { background: #0369a1; }
         .btn-danger { background: #ef4444; }
         .btn-danger:hover { background: #dc2626; }
@@ -27,7 +27,7 @@
         select:focus, input:focus { border-color: #38bdf8; }
 
         /* Estilos da Tela de Autenticação */
-        #auth-screen { max-width: 400px; margin: 50px auto 0 auto; }
+        #auth-screen { max-width: 400px; margin: 40px auto 0 auto; }
         .auth-toggle { text-align: center; margin-top: 15px; font-size: 13px; color: #94a3b8; }
         .auth-toggle span { color: #38bdf8; cursor: pointer; text-decoration: underline; font-weight: bold; }
 
@@ -38,7 +38,6 @@
         th { color: #94a3b8; background: #0f172a; }
         .badge { background: #22c55e; color: black; padding: 3px 6px; border-radius: 4px; font-weight: bold; font-size: 11px; display: inline-block; }
         
-        /* Header Usuário Logado */
         .user-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
 
         /* Modal ADM */
@@ -52,29 +51,29 @@
     <!-- TELA DE LOGIN E CADASTRO -->
     <div id="auth-screen">
         <div class="card">
-            <h1 style="text-align: center;">⚡ SMS ATIVO</h1>
+            <h1 style="text-align: center; margin-bottom: 20px;">⚡ SMS ATIVO</h1>
             
-            <!-- Form de Login -->
+            <!-- Formulário de Login -->
             <div id="login-box">
                 <h2>🔐 Entrar na Conta</h2>
-                <input type="text" id="login-user" placeholder="Usuário ou E-mail">
+                <input type="text" id="login-user" placeholder="Usuário">
                 <input type="password" id="login-pass" placeholder="Sua Senha">
                 <button class="btn" onclick="fazerLogin()">Acessar Painel</button>
                 <div class="auth-toggle">Não tem conta? <span onclick="toggleAuth('cad')">Cadastre-se aqui</span></div>
             </div>
 
-            <!-- Form de Cadastro -->
+            <!-- Formulário de Cadastro -->
             <div id="cad-box" style="display: none;">
                 <h2>📝 Criar Nova Conta</h2>
                 <input type="text" id="cad-user" placeholder="Escolha um Usuário">
                 <input type="password" id="cad-pass" placeholder="Escolha uma Senha">
-                <button class="btn btn-success" onclick="fazerCadastro()">Criar Minha Conta</button>
+                <button class="btn btn-success" onclick="fazerCadastro()">Criar e Entrar</button>
                 <div class="auth-toggle">Já possui conta? <span onclick="toggleAuth('login')">Fazer Login</span></div>
             </div>
         </div>
     </div>
 
-    <!-- PAINEL PRINCIPAL (SÓ APARAECERÁ APÓS O LOGIN) -->
+    <!-- PAINEL PRINCIPAL (SÓ APARECE APÓS LOGAR) -->
     <div class="container" id="app-screen" style="display: none;">
         <div class="user-bar">
             <!-- Clique 5 vezes na logo para abrir o ADM com a senha peralta93 -->
@@ -182,8 +181,15 @@
             fivesim: "eyJhbGciOiJSUzUxMiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE4MTQxMDcyNjUsImlhdCI6MTc4MjU3MTI2NSwicmF5IjoiYzg1ZmEwZjM1MGQ1YWNkZjRjYjk5ZWIyMzE2YjAxZWIiLCJzdWIiOjQyNjIxODB9.1LFDwhMqgtLvUX_oOdyUAwnOL5Q5hP6935waWnk5lxastrq0fQNqzdnkyLLYL4WWCCELDHov2FaJPvtN9o6VT6qmHnl1WbLHKxU8SuyRNX-kAQlVjSiHXd9Szn5fbQTPRE0_f3iIzkk3Ctae2kLDGc5eXKfCNvRtgZrn3iNNGBirtSmP4t3h1wmBeejixDMatX6NoK8Tf48I7hJSCm_QMmRt2d8i_dr96_Qsr-pngk8MmY3mVf1hpBhTSj-fENqPxjeiurSfKfmiekk0Z3JIXwssHHvHYKJy1fh2tNPN_2KSSoMWzy_XxpnpapbbWO0MV4j_MLIOYdzQJEgxh8skk"
         };
 
-        // Banco de Dados Local
-        let dbUsers = JSON.parse(localStorage.getItem('sms_db_users') || '{}');
+        // Carrega dados e garante que a estrutura existe
+        function getDBUsers() {
+            return JSON.parse(localStorage.getItem('sms_db_users') || '{}');
+        }
+
+        function saveDBUsers(data) {
+            localStorage.setItem('sms_db_users', JSON.stringify(data));
+        }
+
         let keys = JSON.parse(localStorage.getItem('sms_api_keys') || JSON.stringify(DEFAULT_KEYS));
         let currentUser = localStorage.getItem('sms_current_user') || null;
 
@@ -201,19 +207,28 @@
             const user = document.getElementById('cad-user').value.trim().toLowerCase();
             const pass = document.getElementById('cad-pass').value.trim();
 
-            if (!user || !pass) return alert('Preencha usuário e senha!');
-            if (dbUsers[user]) return alert('Esse usuário já existe!');
+            if (!user || !pass) return alert('⚠️ Digite um usuário e uma senha!');
+
+            const dbUsers = getDBUsers();
+            if (dbUsers[user]) return alert('⚠️ Este usuário já existe! Escolha outro.');
 
             dbUsers[user] = { pass: pass, saldo: 0.00, orders: {} };
-            localStorage.setItem('sms_db_users', JSON.stringify(dbUsers));
+            saveDBUsers(dbUsers);
+
+            currentUser = user;
+            localStorage.setItem('sms_current_user', currentUser);
             
-            alert('✔ Conta criada com sucesso! Faça seu login.');
-            toggleAuth('login');
+            alert('✔ Conta criada com sucesso!');
+            iniciarApp();
         }
 
         function fazerLogin() {
             const user = document.getElementById('login-user').value.trim().toLowerCase();
             const pass = document.getElementById('login-pass').value.trim();
+
+            if (!user || !pass) return alert('⚠️ Preencha os campos de usuário e senha!');
+
+            const dbUsers = getDBUsers();
 
             if (!dbUsers[user] || dbUsers[user].pass !== pass) {
                 return alert('❌ Usuário ou senha incorretos!');
@@ -232,6 +247,7 @@
         }
 
         function iniciarApp() {
+            const dbUsers = getDBUsers();
             if (!currentUser || !dbUsers[currentUser]) return logout();
             
             document.getElementById('auth-screen').style.display = 'none';
@@ -244,14 +260,14 @@
         function updateUI() {
             if (!currentUser) return;
 
+            const dbUsers = getDBUsers();
             const userData = dbUsers[currentUser];
-            document.getElementById('user-saldo').innerText = 'R$ ' + userData.saldo.toFixed(2);
-            
-            // Salva as alterações no localStorage
-            localStorage.setItem('sms_db_users', JSON.stringify(dbUsers));
+            if (!userData) return logout();
+
+            document.getElementById('user-saldo').innerText = 'R$ ' + (userData.saldo || 0).toFixed(2);
 
             const tbody = document.getElementById('orders-list');
-            const orderKeys = Object.keys(userData.orders);
+            const orderKeys = Object.keys(userData.orders || {});
 
             if (orderKeys.length === 0) {
                 tbody.innerHTML = '<tr><td colspan="6">Nenhum pedido ativo no momento.</td></tr>';
@@ -305,9 +321,11 @@
             const val = parseFloat(document.getElementById('adm-saldo-val').value);
             if (!val || val <= 0) return alert('Digite um valor válido');
             
+            const dbUsers = getDBUsers();
             if (tipo === 'add') dbUsers[currentUser].saldo += val;
             if (tipo === 'rem') dbUsers[currentUser].saldo = Math.max(0, dbUsers[currentUser].saldo - val);
             
+            saveDBUsers(dbUsers);
             updateUI();
             alert(`Saldo atualizado para o usuário ${currentUser}!`);
         }
@@ -365,7 +383,9 @@
         }
 
         function simularAprovacao(val) {
+            const dbUsers = getDBUsers();
             dbUsers[currentUser].saldo += val;
+            saveDBUsers(dbUsers);
             document.getElementById('pix-result').innerHTML = `<span style="color:#22c55e;">✔ Pagamento aprovado! Saldo creditado.</span>`;
             updateUI();
         }
@@ -375,6 +395,7 @@
             const service = document.getElementById('select-service').value;
             const custo = precos[service] || 5.00;
 
+            const dbUsers = getDBUsers();
             if (dbUsers[currentUser].saldo < custo) {
                 return alert(`Saldo insuficiente! Custo: R$ ${custo.toFixed(2)}`);
             }
@@ -386,214 +407,33 @@
                 let targetUrl = '';
                 if (provider === 'smsact') targetUrl = `https://api.sms-activate.org/stubs/handler_api.php?api_key=${keys.smsact}&action=getNumber&service=${service}&country=73`;
                 else if (provider === 'grizzly') targetUrl = `https://api.grizzlysms.com/stubs/handler_api.php?api_key=${keys.grizzly}&action=getNumber&service=${service}&country=73`;
-                else if (provider === 'smsman') targetUrl = `https://api.sms-man.com/stubs/handler_api.php?api_key=${keys.smsman}&action=getNumber&service=${service}&country=73`            <label style="font-size:12px; color:#94a3b8;">SMS-Activate Key:</label>
-            <input type="text" id="adm-smsact-key">
+                else if (provider === 'smsman') targetUrl = `https://api.sms-man.com/stubs/handler_api.php?api_key=${keys.smsman}&action=getNumber&service=${service}&country=73`;
 
-            <label style="font-size:12px; color:#94a3b8;">Grizzly SMS Key:</label>
-            <input type="text" id="adm-grizzly-key">
-
-            <label style="font-size:12px; color:#94a3b8;">SMS Man Key:</label>
-            <input type="text" id="adm-smsman-key">
-
-            <label style="font-size:12px; color:#94a3b8;">5Sim Token:</label>
-            <input type="text" id="adm-fivesim-token">
-
-            <button class="btn" style="width:100%; margin-top:10px;" onclick="salvarChavesAdm()">Salvar Todas as Chaves</button>
-        </div>
-    </div>
-
-    <script>
-        const DEFAULT_KEYS = {
-            mp: "APP_USR-2362596823763937-062812-908d117f88117bc73ab02aa7037fbab9-1882995106",
-            smsact: "2da2c5408f6af8f700c1a93eef85be1f0c895c19e25df6db123eeb2a099a1c5a",
-            grizzly: "c9617d3a15fdb9debc774b2d5272ffc8",
-            smsman: "CHJOu5dPq1QNhvzqcX8Aix5vGetYdvQo",
-            fivesim: "eyJhbGciOiJSUzUxMiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE4MTQxMDcyNjUsImlhdCI6MTc4MjU3MTI2NSwicmF5IjoiYzg1ZmEwZjM1MGQ1YWNkZjRjYjk5ZWIyMzE2YjAxZWIiLCJzdWIiOjQyNjIxODB9.1LFDwhMqgtLvUX_oOdyUAwnOL5Q5hP6935waWnk5lxastrq0fQNqzdnkyLLYL4WWCCELDHov2FaJPvtN9o6VT6qmHnl1WbLHKxU8SuyRNX-kAQlVjSiHXd9Szn5fbQTPRE0_f3iIzkk3Ctae2kLDGc5eXKfCNvRtgZrn3iNNGBirtSmP4t3h1wmBeejixDMatX6NoK8Tf48I7hJSCm_QMmRt2d8i_dr96_Qsr-pngk8MmY3mVf1hpBhTSj-fENqPxjeiurSfKfmiekk0Z3JIXwssHHvHYKJy1fh2tNPN_2KSSoMWzy_XxpnpapbbWO0MV4j_MLIOYdzQJEgxh8skk"
-        };
-
-        let keys = JSON.parse(localStorage.getItem('sms_api_keys') || JSON.stringify(DEFAULT_KEYS));
-        let appState = {
-            saldo: parseFloat(localStorage.getItem('sms_user_saldo') || '0.00'),
-            orders: JSON.parse(localStorage.getItem('sms_orders') || '{}')
-        };
-
-        const precos = { wa: 7.50, tg: 6.00, go: 4.50, ig: 3.50 };
-        let logoClicks = 0;
-        let clickTimer = null;
-
-        function updateUI() {
-            document.getElementById('user-saldo').innerText = 'R$ ' + appState.saldo.toFixed(2);
-            localStorage.setItem('sms_user_saldo', appState.saldo.toString());
-            localStorage.setItem('sms_orders', JSON.stringify(appState.orders));
-
-            const tbody = document.getElementById('orders-list');
-            const orderKeys = Object.keys(appState.orders);
-
-            if (orderKeys.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="6">Nenhum pedido ativo no momento.</td></tr>';
-                return;
-            }
-
-            tbody.innerHTML = orderKeys.map(id => {
-                const o = appState.orders[id];
-                return `
-                    <tr>
-                        <td>${o.id}</td>
-                        <td>${o.provider}</td>
-                        <td>${o.service}</td>
-                        <td><strong>${o.number}</strong></td>
-                        <td><span class="badge">${o.sms || 'Aguardando SMS...'}</span></td>
-                        <td>
-                            <button class="btn" style="padding:5px 10px; font-size:12px;" onclick="verificarSms('${o.id}')">Verificar</button>
-                            <button class="btn btn-danger" style="padding:5px 10px; font-size:12px;" onclick="cancelarPedido('${o.id}')">Cancelar</button>
-                        </td>
-                    </tr>
-                `;
-            }).join('');
-        }
-
-        function clickLogo() {
-            logoClicks++;
-            clearTimeout(clickTimer);
-            
-            if (logoClicks >= 5) {
-                logoClicks = 0;
-                const pass = prompt('🔐 Digite a Senha do Administrador:');
-                if (pass === 'peralta93') {
-                    abrirAdm();
-                } else if (pass !== null) {
-                    alert('❌ Senha Incorreta!');
-                }
-            } else {
-                clickTimer = setTimeout(() => { logoClicks = 0; }, 2000);
-            }
-        }
-
-        function abrirAdm() {
-            document.getElementById('adm-mp-token').value = keys.mp;
-            document.getElementById('adm-smsact-key').value = keys.smsact;
-            document.getElementById('adm-grizzly-key').value = keys.grizzly;
-            document.getElementById('adm-smsman-key').value = keys.smsman;
-            document.getElementById('adm-fivesim-token').value = keys.fivesim;
-            document.getElementById('modal-adm').style.display = 'flex';
-        }
-
-        function fecharAdm() {
-            document.getElementById('modal-adm').style.display = 'none';
-        }
-
-        function alterarSaldo(tipo) {
-            const val = parseFloat(document.getElementById('adm-saldo-val').value);
-            if (!val || val <= 0) return alert('Digite um valor válido');
-            
-            if (tipo === 'add') appState.saldo += val;
-            if (tipo === 'rem') appState.saldo = Math.max(0, appState.saldo - val);
-            
-            updateUI();
-            alert('Saldo atualizado com sucesso!');
-        }
-
-        function salvarChavesAdm() {
-            keys.mp = document.getElementById('adm-mp-token').value;
-            keys.smsact = document.getElementById('adm-smsact-key').value;
-            keys.grizzly = document.getElementById('adm-grizzly-key').value;
-            keys.smsman = document.getElementById('adm-smsman-key').value;
-            keys.fivesim = document.getElementById('adm-fivesim-token').value;
-
-            localStorage.setItem('sms_api_keys', JSON.stringify(keys));
-            alert('✔ Chaves salvas no cofre com sucesso!');
-            fecharAdm();
-        }
-
-        async function gerarPix() {
-            const amount = parseFloat(document.getElementById('pix-amount').value);
-
-            if (!amount || amount <= 0) return alert('Digite um valor válido para o PIX.');
-            if (!keys.mp) return alert('Token do Mercado Pago não configurado no ADM.');
-
-            try {
-                document.getElementById('pix-result').innerHTML = 'Gerando PIX no Mercado Pago...';
-                
-                const idempotencyKey = 'IDEM-' + Date.now() + '-' + Math.floor(Math.random() * 1000000);
-
-                const response = await fetch('https://api.mercadopago.com/v1/payments', {
-                    method: 'POST',
-                    headers: {
-                        'Authorization': `Bearer ${keys.mp}`,
-                        'Content-Type': 'application/json',
-                        'X-Idempotency-Key': idempotencyKey
-                    },
-                    body: JSON.stringify({
-                        transaction_amount: amount,
-                        description: `Recarga Painel SMS`,
-                        payment_method_id: 'pix',
-                        payer: { email: 'cliente@smsativo.com' }
-                    })
-                });
-
-                const data = await response.json();
-                if (data.id && data.point_of_interaction) {
-                    const qrCode = data.point_of_interaction.transaction_data.qr_code;
-                    document.getElementById('pix-result').innerHTML = `
-                        <p style="color:#4ade80;">PIX Gerado com Sucesso! (ID: ${data.id})</p>
-                        <p>Copie o código abaixo:</p>
-                        <textarea style="width:100%; height:70px; background:#0f172a; color:#fff; border:1px solid #334155;" readonly>${qrCode}</textarea>
-                        <p style="font-size:12px; color:#94a3b8; margin-top:5px;">Simulação: <button onclick="simularAprovacao(${amount})" style="background:#22c55e; border:none; padding:4px 8px; color:#000; font-weight:bold; cursor:pointer; border-radius:4px;">Aprovar R$ ${amount.toFixed(2)}</button></p>
-                    `;
-                } else {
-                    document.getElementById('pix-result').innerHTML = `<span style="color:#ef4444;">Erro ao gerar: ${data.message || 'Verifique a chave do MP'}</span>`;
-                }
-            } catch (e) {
-                alert('Erro na requisição PIX: ' + e.message);
-            }
-        }
-
-        function simularAprovacao(val) {
-            appState.saldo += val;
-            document.getElementById('pix-result').innerHTML = `<span style="color:#22c55e;">✔ Pagamento aprovado! Saldo creditado.</span>`;
-            updateUI();
-        }
-
-        async function solicitarNumero() {
-            const provider = document.getElementById('select-provider').value;
-            const service = document.getElementById('select-service').value;
-            const custo = precos[service] || 5.00;
-
-            if (appState.saldo < custo) {
-                return alert(`Saldo insuficiente! Custo: R$ ${custo.toFixed(2)}. Adicione saldo no painel.`);
-            }
-
-            let orderId = null;
-            let phoneNumber = null;
-
-            try {
-                if (provider === 'smsact') {
-                    const res = await fetch(`https://api.sms-activate.org/stubs/handler_api.php?api_key=${keys.smsact}&action=getNumber&service=${service}&country=73`);
+                if (targetUrl) {
+                    const res = await fetch(PROXY + encodeURIComponent(targetUrl));
                     const text = await res.text();
                     if (text.includes('ACCESS_NUMBER')) {
                         const parts = text.split(':');
                         orderId = parts[1];
                         phoneNumber = parts[2];
                     } else {
-                        return alert('Erro SMS-Activate: ' + text);
+                        return alert(`Erro (${provider.toUpperCase()}): ` + text);
                     }
-                } else if (provider === 'grizzly') {
-                    const res = await fetch(`https://api.grizzlysms.com/stubs/handler_api.php?api_key=${keys.grizzly}&action=getNumber&service=${service}&country=73`);
-                    const text = await res.text();
-                    if (text.includes('ACCESS_NUMBER')) {
-                        const parts = text.split(':');
-                        orderId = parts[1];
-                        phoneNumber = parts[2];
+                } else if (provider === 'fivesim') {
+                    const res = await fetch(PROXY + encodeURIComponent(`https://5sim.net/v1/user/buy/activation/brazil/any/${service}`), {
+                        headers: { 'Authorization': `Bearer ${keys.fivesim}`, 'Accept': 'application/json' }
+                    });
+                    const data = await res.json();
+                    if (data && data.id) {
+                        orderId = String(data.id);
+                        phoneNumber = data.phone;
                     } else {
-                        return alert('Erro Grizzly: ' + text);
+                        return alert('Erro 5Sim: ' + (data.message || 'Falha ao obter número'));
                     }
-                } else {
-                    orderId = 'REQ_' + Math.floor(Math.random() * 100000);
-                    phoneNumber = '55119' + Math.floor(10000000 + Math.random() * 90000000);
                 }
 
-                appState.saldo -= custo;
-                appState.orders[orderId] = {
+                dbUsers[currentUser].saldo -= custo;
+                dbUsers[currentUser].orders[orderId] = {
                     id: orderId,
                     provider: provider.toUpperCase(),
                     service: service.toUpperCase(),
@@ -602,49 +442,75 @@
                     custo: custo
                 };
 
+                saveDBUsers(dbUsers);
                 updateUI();
-                alert('Número alocado com sucesso: +' + phoneNumber);
+                alert('Número alocado: +' + phoneNumber);
             } catch (e) {
-                alert('Erro ao conectar com o provedor: ' + e.message);
+                alert('Erro de conexão: ' + e.message);
             }
         }
 
         async function verificarSms(orderId) {
-            const o = appState.orders[orderId];
+            const dbUsers = getDBUsers();
+            const o = dbUsers[currentUser].orders[orderId];
             if (!o) return;
 
-            if (o.id.startsWith('REQ_')) {
-                o.sms = '852963';
-                updateUI();
-                return alert('SMS Recebido: 852963');
-            }
-
             try {
-                const res = await fetch(`https://api.sms-activate.org/stubs/handler_api.php?api_key=${keys.smsact}&action=getStatus&id=${orderId}`);
-                const text = await res.text();
-                if (text.includes('STATUS_OK')) {
-                    o.sms = text.split(':')[1];
-                    updateUI();
-                    alert('Código SMS recebido: ' + o.sms);
-                } else {
-                    alert('Status: ' + text);
+                const prov = o.provider.toLowerCase();
+                let targetUrl = '';
+                
+                if (prov === 'smsact') targetUrl = `https://api.sms-activate.org/stubs/handler_api.php?api_key=${keys.smsact}&action=getStatus&id=${orderId}`;
+                if (prov === 'grizzly') targetUrl = `https://api.grizzlysms.com/stubs/handler_api.php?api_key=${keys.grizzly}&action=getStatus&id=${orderId}`;
+                if (prov === 'smsman') targetUrl = `https://api.sms-man.com/stubs/handler_api.php?api_key=${keys.smsman}&action=getStatus&id=${orderId}`;
+
+                if (targetUrl) {
+                    const res = await fetch(PROXY + encodeURIComponent(targetUrl));
+                    const text = await res.text();
+                    if (text.includes('STATUS_OK')) {
+                        o.sms = text.split(':')[1];
+                        saveDBUsers(dbUsers);
+                        updateUI();
+                        alert('SMS Recebido: ' + o.sms);
+                    } else {
+                        alert('Status atual: ' + text);
+                    }
+                } else if (prov === 'fivesim') {
+                    const res = await fetch(PROXY + encodeURIComponent(`https://5sim.net/v1/user/check/${orderId}`), {
+                        headers: { 'Authorization': `Bearer ${keys.fivesim}`, 'Accept': 'application/json' }
+                    });
+                    const data = await res.json();
+                    if (data && data.sms && data.sms.length > 0) {
+                        o.sms = data.sms[0].code;
+                        saveDBUsers(dbUsers);
+                        updateUI();
+                        alert('SMS Recebido: ' + o.sms);
+                    } else {
+                        alert('SMS ainda não chegou.');
+                    }
                 }
             } catch (e) {
-                alert('Erro ao verificar SMS.');
+                alert('Erro ao checar SMS.');
             }
         }
 
         function cancelarPedido(orderId) {
-            const o = appState.orders[orderId];
+            const dbUsers = getDBUsers();
+            const o = dbUsers[currentUser].orders[orderId];
             if (o) {
-                appState.saldo += o.custo;
-                delete appState.orders[orderId];
+                dbUsers[currentUser].saldo += o.custo;
+                delete dbUsers[currentUser].orders[orderId];
+                saveDBUsers(dbUsers);
                 updateUI();
-                alert('Pedido cancelado e valor reembolsado.');
+                alert('Pedido cancelado e valor reembolsado!');
             }
         }
 
-        updateUI();
+        // Executa ao carregar a página
+        window.onload = function() {
+            if (currentUser) {
+                iniciarApp();
+            }
+        };
     </script>
 </body>
 </html>
