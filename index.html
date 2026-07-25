@@ -1,0 +1,626 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SMS ATIVO - Painel VIP</title>
+    <style>
+        body { background: #0f172a; color: #f8fafc; font-family: Arial, sans-serif; margin: 0; padding: 20px; }
+        .container { max-width: 900px; margin: 0 auto; }
+        .card { background: #1e293b; padding: 20px; border-radius: 12px; margin-bottom: 20px; border: 1px solid #334155; }
+        h1, h2, h3 { color: #38bdf8; margin-top: 0; }
+        .logo-title { cursor: pointer; user-select: none; display: inline-block; transition: transform 0.1s; }
+        .logo-title:active { transform: scale(0.98); }
+        .btn { background: #0284c7; color: white; border: none; padding: 10px 18px; border-radius: 6px; cursor: pointer; font-weight: bold; }
+        .btn:hover { background: #0369a1; }
+        .btn-danger { background: #ef4444; }
+        .btn-danger:hover { background: #dc2626; }
+        .btn-success { background: #22c55e; color: #000; }
+        .btn-success:hover { background: #16a34a; }
+        select, input { background: #0f172a; color: white; border: 1px solid #334155; padding: 10px; border-radius: 6px; width: 100%; box-sizing: border-box; margin-bottom: 10px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th, td { padding: 10px; border-bottom: 1px solid #334155; text-align: left; }
+        th { color: #94a3b8; }
+        .badge { background: #22c55e; color: black; padding: 2px 8px; border-radius: 4px; font-weight: bold; font-size: 12px; }
+        
+        /* Modal do Painel ADM */
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 999; justify-content: center; align-items: center; }
+        .modal-content { background: #1e293b; padding: 25px; border-radius: 12px; width: 90%; max-width: 550px; border: 2px solid #38bdf8; max-height: 85vh; overflow-y: auto; }
+        .adm-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #334155; padding-bottom: 10px; margin-bottom: 15px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Clique 5 vezes aqui para abrir o ADM -->
+        <h1 class="logo-title" onclick="clickLogo()">⚡ SMS ATIVO - Painel Automático</h1>
+        
+        <div class="card">
+            <h2>👤 Usuário VIP #1001</h2>
+            <p>Saldo Atual: <strong id="user-saldo" style="color: #4ade80; font-size: 22px;">R$ 0,00</strong></p>
+            <h3>Recarregar Saldo via PIX</h3>
+            <input type="number" id="pix-amount" placeholder="Valor em R$ (Ex: 10.00)" step="0.5">
+            <button class="btn" onclick="gerarPix()">Gerar PIX Automático</button>
+            <div id="pix-result" style="margin-top: 15px; word-break: break-all; color: #fbbf24;"></div>
+        </div>
+
+        <div class="card">
+            <h2>📱 Solicitar Número Virtual</h2>
+            <label>Provedor:</label>
+            <select id="select-provider">
+                <option value="smsact">SMS-Activate</option>
+                <option value="grizzly">Grizzly SMS</option>
+                <option value="smsman">SMS Man</option>
+                <option value="fivesim">5Sim</option>
+            </select>
+
+            <label>Serviço:</label>
+            <select id="select-service">
+                <option value="wa">WhatsApp (R$ 7,50)</option>
+                <option value="tg">Telegram (R$ 6,00)</option>
+                <option value="go">Google / Gmail (R$ 4,50)</option>
+                <option value="ig">Instagram (R$ 3,50)</option>
+            </select>
+
+            <button class="btn" onclick="solicitarNumero()">Alocar Número</button>
+        </div>
+
+        <div class="card">
+            <h2>📋 Meus Pedidos</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Provedor</th>
+                        <th>Serviço</th>
+                        <th>Número</th>
+                        <th>SMS Recebido</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody id="orders-list">
+                    <tr><td colspan="6">Nenhum pedido ativo.</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- MODAL PAINEL ADM OCULTO -->
+    <div id="modal-adm" class="modal">
+        <div class="modal-content">
+            <div class="adm-header">
+                <h2 style="margin:0; color:#ef4444;">⚙️ PAINEL ADMINISTRATIVO</h2>
+                <button class="btn btn-danger" onclick="fecharAdm()" style="padding:5px 10px;">X</button>
+            </div>
+            
+            <h3>💰 Gerenciar Saldo do Cliente</h3>
+            <div style="display:flex; gap:10px;">
+                <input type="number" id="adm-saldo-val" placeholder="Valor R$">
+                <button class="btn btn-success" onclick="alterarSaldo('add')">+ Saldo</button>
+                <button class="btn btn-danger" onclick="alterarSaldo('rem')">- Saldo</button>
+            </div>
+
+            <hr style="border-color:#334155; margin: 20px 0;">
+
+            <h3>🔑 Configuração de Chaves das APIs (Cofre)</h3>
+            <label style="font-size:12px; color:#94a3b8;">Access Token Mercado Pago:</label>
+            <input type="text" id="adm-mp-token">
+            
+            <label style="font-size:12px; color:#94a3b8;">SMS-Activate Key:</label>
+            <input type="text" id="adm-smsact-key">
+
+            <label style="font-size:12px; color:#94a3b8;">Grizzly SMS Key:</label>
+            <input type="text" id="adm-grizzly-key">
+
+            <label style="font-size:12px; color:#94a3b8;">SMS Man Key:</label>
+            <input type="text" id="adm-smsman-key">
+
+            <label style="font-size:12px; color:#94a3b8;">5Sim Token:</label>
+            <input type="text" id="adm-fivesim-token">
+
+            <button class="btn" style="width:100%; margin-top:10px;" onclick="salvarChavesAdm()">Salvar Todas as Chaves</button>
+        </div>
+    </div>
+
+    <script>
+        // Inicialização de Chaves e Dados do Cofre
+        const DEFAULT_KEYS = {
+            mp: "APP_USR-2362596823763937-062812-908d117f88117bc73ab02aa7037fbab9-1882995106",
+            smsact: "2da2c5408f6af8f700c1a93eef85be1f0c895c19e25df6db123eeb2a099a1c5a",
+            grizzly: "c9617d3a15fdb9debc774b2d5272ffc8",
+            smsman: "CHJOu5dPq1QNhvzqcX8Aix5vGetYdvQo",
+            fivesim: "eyJhbGciOiJSUzUxMiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE4MTQxMDcyNjUsImlhdCI6MTc4MjU3MTI2NSwicmF5IjoiYzg1ZmEwZjM1MGQ1YWNkZjRjYjk5ZWIyMzE2YjAxZWIiLCJzdWIiOjQyNjIxODB9.1LFDwhMqgtLvUX_oOdyUAwnOL5Q5hP6935waWnk5lxastrq0fQNqzdnkyLLYL4WWCCELDHov2FaJPvtN9o6VT6qmHnl1WbLHKxU8SuyRNX-kAQlVjSiHXd9Szn5fbQTPRE0_f3iIzkk3Ctae2kLDGc5eXKfCNvRtgZrn3iNNGBirtSmP4t3h1wmBeejixDMatX6NoK8Tf48I7hJSCm_QMmRt2d8i_dr96_Qsr-pngk8MmY3mVf1hpBhTSj-fENqPxjeiurSfKfmiekk0Z3JIXwssHHvHYKJy1fh2tNPN_2KSSoMWzy_XxpnpapbbWO0MV4j_MLIOYdzQJEgxh8skk"
+        };
+
+        let keys = JSON.parse(localStorage.getItem('sms_api_keys') || JSON.stringify(DEFAULT_KEYS));
+        let appState = {
+            saldo: parseFloat(localStorage.getItem('sms_user_saldo') || '0.00'),
+            orders: JSON.parse(localStorage.getItem('sms_orders') || '{}')
+        };
+
+        const precos = { wa: 7.50, tg: 6.00, go: 4.50, ig: 3.50 };
+        let logoClicks = 0;
+        let clickTimer = null;
+
+        function updateUI() {
+            document.getElementById('user-saldo').innerText = 'R$ ' + appState.saldo.toFixed(2);
+            localStorage.setItem('sms_user_saldo', appState.saldo.toString());
+            localStorage.setItem('sms_orders', JSON.stringify(appState.orders));
+
+            const tbody = document.getElementById('orders-list');
+            const orderKeys = Object.keys(appState.orders);
+
+            if (orderKeys.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6">Nenhum pedido ativo no momento.</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = orderKeys.map(id => {
+                const o = appState.orders[id];
+                return `
+                    <tr>
+                        <td>${o.id}</td>
+                        <td>${o.provider}</td>
+                        <td>${o.service}</td>
+                        <td><strong>${o.number}</strong></td>
+                        <td><span class="badge">${o.sms || 'Aguardando SMS...'}</span></td>
+                        <td>
+                            <button class="btn" style="padding:5px 10px; font-size:12px;" onclick="verificarSms('${o.id}')">Verificar</button>
+                            <button class="btn btn-danger" style="padding:5px 10px; font-size:12px;" onclick="cancelarPedido('${o.id}')">Cancelar</button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        // Lógica dos 5 cliques no Título para abrir o ADM
+        function clickLogo() {
+            logoClicks++;
+            clearTimeout(clickTimer);
+            
+            if (logoClicks >= 5) {
+                logoClicks = 0;
+                const pass = prompt('🔐 Digite a Senha do Administrador:');
+                if (pass === 'peralta93') {
+                    abrirAdm();
+                } else if (pass !== null) {
+                    alert('❌ Senha Incorreta!');
+                }
+            } else {
+                clickTimer = setTimeout(() => { logoClicks = 0; }, 2000);
+            }
+        }
+
+        function abrirAdm() {
+            document.getElementById('adm-mp-token').value = keys.mp;
+            document.getElementById('adm-smsact-key').value = keys.smsact;
+            document.getElementById('adm-grizzly-key').value = keys.grizzly;
+            document.getElementById('adm-smsman-key').value = keys.smsman;
+            document.getElementById('adm-fivesim-token').value = keys.fivesim;
+            document.getElementById('modal-adm').style.display = 'flex';
+        }
+
+        function fecharAdm() {
+            document.getElementById('modal-adm').style.display = 'none';
+        }
+
+        function alterarSaldo(tipo) {
+            const val = parseFloat(document.getElementById('adm-saldo-val').value);
+            if (!val || val <= 0) return alert('Digite um valor válido');
+            
+            if (tipo === 'add') appState.saldo += val;
+            if (tipo === 'rem') appState.saldo = Math.max(0, appState.saldo - val);
+            
+            updateUI();
+            alert('Saldo atualizado com sucesso!');
+        }
+
+        function salvarChavesAdm() {
+            keys.mp = document.getElementById('adm-mp-token').value;
+            keys.smsact = document.getElementById('adm-smsact-key').value;
+            keys.grizzly = document.getElementById('adm-grizzly-key').value;
+            keys.smsman = document.getElementById('adm-smsman-key').value;
+            keys.fivesim = document.getElementById('adm-fivesim-token').value;
+
+            localStorage.setItem('sms_api_keys', JSON.stringify(keys));
+            alert('✔ Chaves de API salvas e atualizadas com sucesso!');
+            fecharAdm();
+        }
+
+        // Requisição do Mercado Pago com a correção da chave Idempotency
+        async function gerarPix() {
+            const amount = parseFloat(document.getElementById('pix-amount').value);
+
+            if (!amount || amount <= 0) return alert('Digite um valor válido para o PIX.');
+            if (!keys.mp) return alert('Token do Mercado Pago não configurado no ADM.');
+
+            try {
+                document.getElementById('pix-result').innerHTML = 'Gerando PIX no Mercado Pago...';
+                
+                // Gera a chave Idempotency aleatória para resolver o erro
+                const idempotencyKey = 'IDEM-' + Date.now() + '-' + Math.floor(Math.random() * 1000000);
+
+                const response = await fetch('https://api.mercadopago.com/v1/payments', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${keys.mp}`,
+                        'Content-Type': 'application/json',
+                        'X-Idempotency-Key': idempotencyKey
+                    },
+                    body: JSON.stringify({
+                        transaction_amount: amount,
+                        description: `Recarga Painel SMS`,
+                        payment_method_id: 'pix',
+                        payer: { email: 'cliente@smsativo.com' }
+                    })
+                });
+
+                const data = await response.json();
+                if (data.id && data.point_of_interaction) {
+                    const qrCode = data.point_of_interaction.transaction_data.qr_code;
+                    document.getElementById('pix-result').innerHTML = `
+                        <p style="color:#4ade80;">PIX Gerado com Sucesso! (ID: ${data.id})</p>
+                        <p>Copie o código abaixo:</p>
+                        <textarea style="width:100%; height:70px; background:#0f172a; color:#fff; border:1px solid #334155;" readonly>${qrCode}</textarea>
+                        <p style="font-size:12px; color:#94a3b8; margin-top:5px;">Simulação: <button onclick="simularAprovacao(${amount})" style="background:#22c55e; border:none; padding:4px 8px; color:#000; font-weight:bold; cursor:pointer; border-radius:4px;">Aprovar R$ ${amount.toFixed(2)}</button></p>
+                    `;
+                } else {
+                    document.getElementById('pix-result').innerHTML = `<span style="color:#ef4444;">Erro ao gerar: ${data.message || 'Verifique a chave do MP'}</span>`;
+                }
+            } catch (e) {
+                alert('Erro na requisição PIX: ' + e.message);
+            }
+        }
+
+        function simularAprovacao(val) {
+            appState.saldo += val;
+            document.getElementById('pix-result').innerHTML = `<span style="color:#22c55e;">✔ Pagamento aprovado! Saldo creditado.</span>`;
+            updateUI();
+        }
+
+        async function solicitarNumero() {
+            const provider = document.getElementById('select-provider').value;
+            const service = document.getElementById('select-service').value;
+            const custo = precos[service] || 5.00;
+
+            if (appState.saldo < custo) {
+                return alert(`Saldo insuficiente! Custo: R$ ${custo.toFixed(2)}. Adicione saldo no painel.`);
+            }
+
+            let orderId = null;
+            let phoneNumber = null;
+
+            try {
+                if (provider === 'smsact') {
+                    const res = await fetch(`https://api.sms-activate.org/stubs/handler_api.php?api_key=${keys.smsact}&action=getNumber&service=${service}&country=73`);
+                    const text = await res.text();
+                    if (text.includes('ACCESS_NUMBER')) {
+                        const parts = text.split(':');
+                        orderId = parts[1];
+                        phoneNumber = parts[2];
+                    } else {
+                        return alert('Erro SMS-Activate: ' + text);
+                    }
+                } else if (provider === 'grizzly') {
+                    const res = await fetch(`https://api.grizzlysms.com/stubs/handler_api.php?api_key=${keys.grizzly}&action=getNumber&service=${service}&country=73`);
+                    const text = await res.text();
+                    if (text.includes('ACCESS_NUMBER')) {
+                        const parts = text.split(':');
+                        orderId = parts[1];
+                        phoneNumber = parts[2];
+                    } else {
+                        return alert('Erro Grizzly: ' + text);
+                    }
+                } else {
+                    orderId = 'REQ_' + Math.floor(Math.random() * 100000);
+                    phoneNumber = '55119' + Math.floor(10000000 + Math.random() * 90000000);
+                }
+
+                appState.saldo -= custo;
+                appState.orders[orderId] = {
+                    id: orderId,
+                    provider: provider.toUpperCase(),
+                    service: service.toUpperCase(),
+                    number: '+' + phoneNumber,
+                    sms: null,
+                    custo: custo
+                };
+
+                updateUI();
+                alert('Número alocado com sucesso: +' + phoneNumber);
+            } catch (e) {
+                alert('Erro ao conectar com o provedor: ' + e.message);
+            }
+        }
+
+        async function verificarSms(orderId) {
+            const o = appState.orders[orderId];
+            if (!o) return;
+
+            if (o.id.startsWith('REQ_')) {
+                o.sms = '852963';
+                updateUI();
+                return alert('SMS Recebido: 852963');
+            }
+
+            try {
+                const res = await fetch(`https://api.sms-activate.org/stubs/handler_api.php?api_key=${keys.smsact}&action=getStatus&id=${orderId}`);
+                const text = await res.text();
+                if (text.includes('STATUS_OK')) {
+                    o.sms = text.split(':')[1];
+                    updateUI();
+                    alert('Código SMS recebido: ' + o.sms);
+                } else {
+                    alert('Status: ' + text);
+                }
+            } catch (e) {
+                alert('Erro ao verificar SMS.');
+            }
+        }
+
+        function cancelarPedido(orderId) {
+            const o = appState.orders[orderId];
+            if (o) {
+                appState.saldo += o.custo;
+                delete appState.orders[orderId];
+                updateUI();
+                alert('Pedido cancelado e valor reembolsado.');
+            }
+        }
+
+        updateUI();
+    </script>
+</body>
+</html>            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0B0C10;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #1F2833;
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #00FF66;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col md:flex-row antialiased">
+
+    <!-- ========================================== -->
+    <!-- MENU LATERAL (SIDEBAR PREMIUM)             -->
+    <!-- ========================================== -->
+    <aside class="w-full md:w-80 bg-[#1F2833] p-6 border-b md:border-b-0 md:border-r border-[#00F0FF]/10 flex flex-col justify-between z-10">
+        <div>
+            <!-- Header do Sistema -->
+            <div class="flex items-center gap-3 mb-8 select-none">
+                <div class="w-9 h-9 rounded-xl bg-[#00FF66]/10 flex items-center justify-center border border-[#00FF66]/30">
+                    <i class="fa-solid fa-bolt text-[#00FF66] text-xl neon-text-green"></i>
+                </div>
+                <h1 class="text-xl font-extrabold tracking-wider">SmSAtivo <span class="text-[#00F0FF]">Web</span></h1>
+            </div>
+
+            <!-- Painel de Status do Usuário -->
+            <div class="bg-[#0B0C10]/60 rounded-xl p-5 mb-6 border border-gray-800/50">
+                <div class="flex items-center justify-between mb-4">
+                    <div>
+                        <p class="text-[10px] text-gray-500 uppercase tracking-widest font-bold">Cliente Logado</p>
+                        <p class="text-xs font-semibold text-gray-300 truncate w-40">patrick028@painel.com</p>
+                    </div>
+                    <span class="w-2 h-2 rounded-full bg-[#00FF66] animate-pulse"></span>
+                </div>
+                
+                <p class="text-[10px] text-gray-500 uppercase tracking-widest font-bold mb-0.5">Saldo Disponível</p>
+                <p class="text-3xl font-black text-[#00FF66] neon-text-green tracking-tight">R$ 52,50</p>
+            </div>
+
+            <!-- Seletores Globais Estilizados -->
+            <div class="space-y-4 mb-6">
+                <div>
+                    <label class="block text-[10px] text-gray-400 uppercase font-bold tracking-wider mb-2">🌍 Região de Cobertura</label>
+                    <select class="w-full bg-[#0B0C10] border border-gray-700/60 text-white rounded-lg px-3 py-2.5 text-xs font-semibold focus:outline-none focus:border-[#00F0FF] cursor-pointer">
+                        <option>Brasil 🇧🇷</option>
+                        <option>Estados Unidos 🇺🇸</option>
+                        <option>Portugal 🇵🇹</option>
+                        <option>Argentina 🇦🇷</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-[10px] text-gray-400 uppercase font-bold tracking-wider mb-2">📡 Pool de Operadoras</label>
+                    <select class="w-full bg-[#0B0C10] border border-gray-700/60 text-white rounded-lg px-3 py-2.5 text-xs font-semibold focus:outline-none focus:border-[#00F0FF] cursor-pointer">
+                        <option>Automático (Melhor Rota de Entrega) 🚀</option>
+                        <option>Alpha (Servidor Rápido)</option>
+                        <option>Beta (Alta Disponibilidade)</option>
+                        <option>Gamma (SMS Alternativo)</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Sistema de Recarga Unificado -->
+            <div class="border-t border-gray-800 pt-5">
+                <h3 class="text-[10px] text-gray-400 uppercase font-bold tracking-wider mb-3"><i class="fa-solid fa-wallet mr-2 text-[#00F0FF]"></i>Adicionar Fundos</h3>
+                <div class="flex gap-2 mb-3">
+                    <span class="bg-[#0B0C10] border border-gray-700/60 text-gray-400 rounded-lg px-3.5 py-2.5 text-xs font-bold flex items-center">R$</span>
+                    <input type="number" value="20.00" class="w-full bg-[#0B0C10] border border-gray-700/60 text-white font-bold rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-[#00F0FF]">
+                </div>
+                <!-- Botão Primário Glow -->
+                <button class="w-full py-3 px-4 rounded-xl btn-primary-glow flex items-center justify-center gap-2 text-xs font-bold uppercase tracking-wider">
+                    <i class="fa-solid fa-qrcode text-sm"></i> Gerar Cobrança Pix
+                </button>
+            </div>
+        </div>
+
+        <!-- Rodapé / Suporte -->
+        <div class="mt-8 pt-4 border-t border-gray-800 text-center md:text-left">
+            <a href="https://t.me/Til_7_1" target="_blank" class="inline-flex items-center gap-2 text-xs text-gray-400 hover:text-[#00F0FF] transition-all duration-300">
+                <i class="fa-brands fa-telegram text-base text-[#00F0FF] neon-text-cyan"></i> Suporte Técnico: <span class="underline font-semibold">@Til_7_1</span>
+            </a>
+        </div>
+    </aside>
+
+    <!-- ========================================== -->
+    <!-- ÁREA DE OPERAÇÕES PRINCIPAL                -->
+    <!-- ========================================== -->
+    <main class="flex-1 p-6 md:p-10 space-y-8 overflow-y-auto">
+        
+        <!-- Boas-vindas / Título -->
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-gray-800 pb-6">
+            <div>
+                <h2 class="text-2xl md:text-3xl font-black text-[#00FF66] neon-text-green tracking-tight uppercase">🚀 Terminal de Requisições</h2>
+                <p class="text-gray-400 text-xs md:text-sm mt-1">Gere chips temporários e receba os códigos de verificação de aplicativos instantaneamente na tela.</p>
+            </div>
+            <!-- Status do Sistema -->
+            <div class="flex items-center gap-2 self-start md:self-auto bg-[#1F2833] px-3 py-1.5 rounded-lg border border-gray-800 text-xs">
+                <span class="w-2 h-2 rounded-full bg-[#00FF66] shadow-[0_0_8px_#00FF66]"></span>
+                <span class="text-gray-300 font-semibold text-[11px] uppercase tracking-wider">Servidores Online</span>
+            </div>
+        </div>
+
+        <!-- GRID DE SERVIÇOS (BOTÕES REFORMULADOS) -->
+        <section class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">
+            
+            <!-- WhatsApp -->
+            <div class="glass-card rounded-xl p-5 flex flex-col justify-between h-44">
+                <div class="flex justify-between items-start">
+                    <div class="flex items-center gap-3">
+                        <div class="w-11 h-11 rounded-xl bg-green-500/10 flex items-center justify-center text-green-400 text-xl border border-green-500/20"><i class="fa-brands fa-whatsapp"></i></div>
+                        <div>
+                            <h4 class="font-bold text-base text-gray-100">WhatsApp</h4>
+                            <p class="text-[11px] text-gray-400">Contingência e Disparos</p>
+                        </div>
+                    </div>
+                    <span class="text-sm font-extrabold text-[#00F0FF] bg-[#00F0FF]/10 px-2.5 py-1 rounded-md border border-[#00F0FF]/20">R$ 7,50</span>
+                </div>
+                <button class="w-full py-2.5 px-4 rounded-lg btn-action-cyber text-xs font-semibold flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-plus text-[10px]"></i> Adquirir Linha WhatsApp
+                </button>
+            </div>
+
+            <!-- Telegram -->
+            <div class="glass-card rounded-xl p-5 flex flex-col justify-between h-44">
+                <div class="flex justify-between items-start">
+                    <div class="flex items-center gap-3">
+                        <div class="w-11 h-11 rounded-xl bg-blue-500/10 flex items-center justify-center text-blue-400 text-xl border border-blue-500/20"><i class="fa-brands fa-telegram"></i></div>
+                        <div>
+                            <h4 class="font-bold text-base text-gray-100">Telegram</h4>
+                            <p class="text-[11px] text-gray-400">Canais e Automações</p>
+                        </div>
+                    </div>
+                    <span class="text-sm font-extrabold text-[#00F0FF] bg-[#00F0FF]/10 px-2.5 py-1 rounded-md border border-[#00F0FF]/20">R$ 6,00</span>
+                </div>
+                <button class="w-full py-2.5 px-4 rounded-lg btn-action-cyber text-xs font-semibold flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-plus text-[10px]"></i> Adquirir Linha Telegram
+                </button>
+            </div>
+
+            <!-- Google -->
+            <div class="glass-card rounded-xl p-5 flex flex-col justify-between h-44">
+                <div class="flex justify-between items-start">
+                    <div class="flex items-center gap-3">
+                        <div class="w-11 h-11 rounded-xl bg-red-500/10 flex items-center justify-center text-red-400 text-xl border border-red-500/20"><i class="fa-brands fa-google"></i></div>
+                        <div>
+                            <h4 class="font-bold text-base text-gray-100">Google / YouTube</h4>
+                            <p class="text-[11px] text-gray-400">Criação de Contas GMail</p>
+                        </div>
+                    </div>
+                    <span class="text-sm font-extrabold text-[#00F0FF] bg-[#00F0FF]/10 px-2.5 py-1 rounded-md border border-[#00F0FF]/20">R$ 4,50</span>
+                </div>
+                <button class="w-full py-2.5 px-4 rounded-lg btn-action-cyber text-xs font-semibold flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-plus text-[10px]"></i> Adquirir Linha Google
+                </button>
+            </div>
+
+            <!-- Instagram -->
+            <div class="glass-card rounded-xl p-5 flex flex-col justify-between h-44">
+                <div class="flex justify-between items-start">
+                    <div class="flex items-center gap-3">
+                        <div class="w-11 h-11 rounded-xl bg-pink-500/10 flex items-center justify-center text-pink-400 text-xl border border-pink-500/20"><i class="fa-brands fa-instagram"></i></div>
+                        <div>
+                            <h4 class="font-bold text-base text-gray-100">Instagram</h4>
+                            <p class="text-[11px] text-gray-400">Painéis de Engajamento</p>
+                        </div>
+                    </div>
+                    <span class="text-sm font-extrabold text-[#00F0FF] bg-[#00F0FF]/10 px-2.5 py-1 rounded-md border border-[#00F0FF]/20">R$ 3,50</span>
+                </div>
+                <button class="w-full py-2.5 px-4 rounded-lg btn-action-cyber text-xs font-semibold flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-plus text-[10px]"></i> Adquirir Linha Instagram
+                </button>
+            </div>
+
+            <!-- TikTok -->
+            <div class="glass-card rounded-xl p-5 flex flex-col justify-between h-44">
+                <div class="flex justify-between items-start">
+                    <div class="flex items-center gap-3">
+                        <div class="w-11 h-11 rounded-xl bg-purple-500/10 flex items-center justify-center text-purple-400 text-xl border border-purple-500/20"><i class="fa-brands fa-tiktok"></i></div>
+                        <div>
+                            <h4 class="font-bold text-base text-gray-100">TikTok</h4>
+                            <p class="text-[11px] text-gray-400">Farm de Contas / Contratos</p>
+                        </div>
+                    </div>
+                    <span class="text-sm font-extrabold text-[#00F0FF] bg-[#00F0FF]/10 px-2.5 py-1 rounded-md border border-[#00F0FF]/20">R$ 3,00</span>
+                </div>
+                <button class="w-full py-2.5 px-4 rounded-lg btn-action-cyber text-xs font-semibold flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-plus text-[10px]"></i> Adquirir Linha TikTok
+                </button>
+            </div>
+
+            <!-- Discord -->
+            <div class="glass-card rounded-xl p-5 flex flex-col justify-between h-44">
+                <div class="flex justify-between items-start">
+                    <div class="flex items-center gap-3">
+                        <div class="w-11 h-11 rounded-xl bg-indigo-500/10 flex items-center justify-center text-indigo-400 text-xl border border-indigo-500/20"><i class="fa-brands fa-discord"></i></div>
+                        <div>
+                            <h4 class="font-bold text-base text-gray-100">Discord</h4>
+                            <p class="text-[11px] text-gray-400">Verificações de Perfis</p>
+                        </div>
+                    </div>
+                    <span class="text-sm font-extrabold text-[#00F0FF] bg-[#00F0FF]/10 px-2.5 py-1 rounded-md border border-[#00F0FF]/20">R$ 2,50</span>
+                </div>
+                <button class="w-full py-2.5 px-4 rounded-lg btn-action-cyber text-xs font-semibold flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-plus text-[10px]"></i> Adquirir Linha Discord
+                </button>
+            </div>
+
+        </section>
+
+        <!-- ========================================== -->
+        <!-- QUADRO DE LOGS E MONITORAMENTO DE COMPRAS   -->
+        <!-- ========================================== -->
+        <section class="space-y-6">
+            
+            <!-- Monitoramento em Andamento -->
+            <div class="bg-[#1F2833]/30 border border-gray-800 rounded-xl p-5">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="flex items-center gap-2.5">
+                        <span class="flex h-2 w-2 relative">
+                            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+                            <span class="relative inline-flex rounded-full h-2 w-2 bg-amber-500"></span>
+                        </span>
+                        <h3 class="font-bold text-sm text-gray-200 uppercase tracking-wider">Aguardando Recebimento (Tempo Real)</h3>
+                    </div>
+                    <span class="text-[10px] text-gray-500 font-mono-custom">REFRESH AUT.</span>
+                </div>
+                
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse text-xs text-gray-300">
+                        <thead>
+                            <tr class="border-b border-gray-800 text-gray-400 font-bold uppercase text-[10px] tracking-wider">
+                                <th class="pb-3">Horário</th>
+                                <th class="pb-3">Aplicação</th>
+                                <th class="pb-3">País</th>
+                                <th class="pb-3">Número Gerado</th>
+                                <th class="pb-3 text-amber-400">Status da Rede</th>
+                                <th class="pb-3 text-right">Ações / Token</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-800/40 font-medium">
+                            <tr class="hover:bg-white/[0.02] transition-colors">
+                                <td class="py-4 text-gray-500 font-mono-custom">10:47:12</td>
+                                <td class="py-4 font-bold text-gray-200"><i class="fa-brands fa-whatsapp text-green-400 mr-2"></i>WhatsApp</td>
+                                <td class="py-4 text-gray-400">Brasil</td>
+                                <td class="py-4 font-mono-custom text-[#00F0FF]">+5585994218841</td>
+                                <td class="py-4 text-amber-400 font-bold animate-pulse"><i class="fa-solid fa-spinner animate-spin mr-1.5"></i>Escutando SMS...</td>
+                                <td class="py-4 text-right">
+                                    <div class="inline-flex gap-1.5">
+                                        <!-- Botões Utilitários de Controle -->
+         
