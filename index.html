@@ -6,19 +6,8 @@
     <title>SMS ATIVO - Painel Completo</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-        
-        body, .card, .btn, .logo-title, label, h1, h2, h3, .tabs, .tab-btn { 
-            -webkit-user-select: none; 
-            user-select: none; 
-            touch-action: manipulation;
-        }
-        
-        input, textarea, select { 
-            -webkit-user-select: text; 
-            user-select: text; 
-            touch-action: manipulation;
-        }
-
+        body, .card, .btn, .logo-title, label, h1, h2, h3, .tabs, .tab-btn { -webkit-user-select: none; user-select: none; touch-action: manipulation; }
+        input, textarea, select { -webkit-user-select: text; user-select: text; touch-action: manipulation; }
         body { background: #0f172a; color: #f8fafc; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; padding: 15px; }
         .container { max-width: 900px; margin: 0 auto; }
         .card { background: #1e293b; padding: 20px; border-radius: 14px; margin-bottom: 15px; border: 1px solid #334155; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.2); }
@@ -26,38 +15,28 @@
         h2 { color: #38bdf8; font-size: 18px; margin-bottom: 15px; }
         h3 { color: #cbd5e1; font-size: 15px; margin: 12px 0 8px 0; }
         .logo-title { cursor: pointer; display: inline-block; }
-        
         .tabs { display: flex; gap: 8px; margin-bottom: 20px; background: #0f172a; padding: 6px; border-radius: 10px; border: 1px solid #334155; }
-        .tab-btn { flex: 1; padding: 12px; background: transparent; color: #94a3b8; border: none; border-radius: 8px; font-weight: bold; font-size: 14px; cursor: pointer; transition: all 0.2s; text-align: center; }
+        .tab-btn { flex: 1; padding: 12px; background: transparent; color: #94a3b8; border: none; border-radius: 8px; font-weight: bold; font-size: 14px; cursor: pointer; text-align: center; }
         .tab-btn.active { background: #0284c7; color: white; box-shadow: 0 2px 4px rgba(0,0,0,0.3); }
-
-        .btn { background: #0284c7; color: #ffffff; border: none; padding: 15px; border-radius: 10px; cursor: pointer; font-weight: bold; width: 100%; font-size: 16px; margin-top: 10px; display: flex; align-items: center; justify-content: center; transition: all 0.2s; }
+        .btn { background: #0284c7; color: #ffffff; border: none; padding: 15px; border-radius: 10px; cursor: pointer; font-weight: bold; width: 100%; font-size: 16px; margin-top: 10px; display: flex; align-items: center; justify-content: center; }
         .btn:active { background: #0369a1; transform: scale(0.98); }
         .btn:disabled { background: #475569; cursor: not-allowed; opacity: 0.7; }
         .btn-danger { background: #ef4444; }
-        .btn-danger:active { background: #dc2626; }
         .btn-success { background: #22c55e; color: #000; }
-        .btn-success:active { background: #16a34a; }
         .btn-table { width: auto; padding: 6px 12px; font-size: 12px; margin-right: 4px; display: inline-block; }
-
-        select, input { background: #0f172a; color: white; border: 1px solid #334155; padding: 14px; border-radius: 10px; width: 100%; box-sizing: border-box; margin-bottom: 12px; font-size: 15px; outline: none; transition: border 0.2s; }
+        select, input { background: #0f172a; color: white; border: 1px solid #334155; padding: 14px; border-radius: 10px; width: 100%; box-sizing: border-box; margin-bottom: 12px; font-size: 15px; outline: none; }
         select:focus, input:focus { border-color: #38bdf8; }
-
         #auth-screen { max-width: 400px; margin: 10px auto 0 auto; }
-
         .table-responsive { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; margin-top: 10px; border-radius: 8px; border: 1px solid #334155; }
         table { width: 100%; border-collapse: collapse; min-width: 580px; }
         th, td { padding: 12px; border-bottom: 1px solid #334155; text-align: left; font-size: 13px; }
         th { color: #94a3b8; background: #0f172a; }
         .badge { background: #22c55e; color: black; padding: 4px 8px; border-radius: 4px; font-weight: bold; font-size: 12px; display: inline-block; }
-        
         .user-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
-
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 999; justify-content: center; align-items: center; padding: 15px; }
         .modal-content { background: #1e293b; padding: 20px; border-radius: 12px; width: 100%; max-width: 600px; border: 2px solid #38bdf8; max-height: 90vh; overflow-y: auto; }
         .adm-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #334155; padding-bottom: 10px; margin-bottom: 15px; }
-
-        #toast { display: none; position: fixed; top: 15px; left: 50%; transform: translateX(-50%); z-index: 9999; padding: 14px 20px; border-radius: 8px; font-weight: bold; font-size: 14px; box-shadow: 0 4px 15px rgba(0,0,0,0.6); text-align: center; width: 90%; max-width: 400px; transition: all 0.3s; }
+        #toast { display: none; position: fixed; top: 15px; left: 50%; transform: translateX(-50%); z-index: 9999; padding: 14px 20px; border-radius: 8px; font-weight: bold; font-size: 14px; box-shadow: 0 4px 15px rgba(0,0,0,0.6); text-align: center; width: 90%; max-width: 400px; }
     </style>
 </head>
 <body>
@@ -67,25 +46,22 @@
     <div id="auth-screen">
         <div class="card">
             <h1 class="logo-title" onclick="clickLogo()">⚡ SMS ATIVO</h1>
-            
             <div class="tabs">
                 <button type="button" class="tab-btn active" id="tab-btn-login" onclick="switchTab('login')">🔐 Entrar</button>
                 <button type="button" class="tab-btn" id="tab-btn-cad" onclick="switchTab('cad')">📝 Cadastrar</button>
             </div>
-
             <div id="login-box">
                 <form id="form-login" onsubmit="executarLogin(event)">
                     <input type="text" id="login-user" placeholder="Usuário" autocomplete="off" autocapitalize="none" required>
                     <input type="password" id="login-pass" placeholder="Sua Senha" required>
-                    <button type="submit" class="btn" onclick="executarLogin(event)">Acessar Painel</button>
+                    <button type="submit" class="btn">Acessar Painel</button>
                 </form>
             </div>
-
             <div id="cad-box" style="display: none;">
                 <form id="form-cad" onsubmit="executarCadastro(event)">
                     <input type="text" id="cad-user" placeholder="Escolha um Usuário" autocomplete="off" autocapitalize="none" required>
                     <input type="password" id="cad-pass" placeholder="Escolha uma Senha" required>
-                    <button type="submit" class="btn btn-success" onclick="executarCadastro(event)">Criar Conta e Acessar</button>
+                    <button type="submit" class="btn btn-success">Criar Conta e Acessar</button>
                 </form>
             </div>
         </div>
@@ -102,10 +78,320 @@
             <p style="font-size: 14px; color:#cbd5e1;">Saldo Atual: <strong id="user-saldo" style="color: #4ade80; font-size: 24px; display:block; margin-top:5px;">R$ 0,00</strong></p>
             <h3>Recarregar Saldo via PIX</h3>
             <input type="number" id="pix-amount" placeholder="Valor em R$ (Ex: 10.00)" step="0.5">
-            <button type="button" class="btn" id="btn-pix" onclick="gerarPixReal()">Gerar PIX Mercado Pago</button>
+            <button type="button" class="btn" id="btn-pix" onclick="gerarPixReal()">Gerar PIX</button>
             <div id="pix-result" style="margin-top: 15px; word-break: break-all; color: #fbbf24;"></div>
         </div>
 
+        <div class="card">
+            <h2>📱 Solicitar Número Virtual</h2>
+            <label style="font-size: 12px; color: #94a3b8; display:block; margin-bottom:4px;">Provedor:</label>
+            <select id="select-provider">
+                <option value="smsact">SMS-Activate</option>
+                <option value="grizzly">Grizzly SMS</option>
+                <option value="smsman">SMS Man</option>
+                <option value="fivesim">5Sim</option>
+            </select>
+            <label style="font-size: 12px; color: #94a3b8; display:block; margin-bottom:4px;">País:</label>
+            <select id="select-country">
+                <option value="73" selected>Brasil (73)</option>
+                <option value="0">Rússia (0)</option>
+                <option value="187">Estados Unidos (187)</option>
+            </select>
+            <label style="font-size: 12px; color: #94a3b8; display:block; margin-bottom:4px;">Serviço:</label>
+            <select id="select-service">
+                <option value="wa">WhatsApp (R$ 7,50)</option>
+                <option value="tg">Telegram (R$ 6,00)</option>
+                <option value="go">Google / Gmail (R$ 4,50)</option>
+                <option value="ig">Instagram (R$ 3,50)</option>
+            </select>
+            <button type="button" class="btn" id="btn-alocar" onclick="solicitarNumeroReal()">Alocar Número</button>
+        </div>
+
+        <div class="card">
+            <h2>📋 Meus Pedidos</h2>
+            <div class="table-responsive">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Provedor</th>
+                            <th>Serviço</th>
+                            <th>Número</th>
+                            <th>SMS / Código</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody id="orders-list">
+                        <tr><td colspan="6">Nenhum pedido ativo.</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div id="modal-pass" class="modal">
+        <div class="modal-content" style="max-width: 320px; text-align: center;">
+            <h3 style="color:#ef4444; margin-bottom: 12px;">🔐 Senha do Admin</h3>
+            <input type="password" id="input-admin-pass" placeholder="Digite a senha..." style="text-align: center;">
+            <button type="button" class="btn btn-success" onclick="verifyAdminPass()">Entrar</button>
+            <button type="button" class="btn btn-danger" onclick="fecharModalPass()" style="margin-top: 8px;">Cancelar</button>
+        </div>
+    </div>
+
+    <div id="modal-adm" class="modal">
+        <div class="modal-content">
+            <div class="adm-header">
+                <h2 style="margin:0; color:#ef4444; font-size: 18px;">⚙️ PAINEL ADMINISTRATIVO</h2>
+                <button type="button" class="btn btn-danger" onclick="fecharAdm()" style="padding:6px 12px; width:auto; margin:0;">X</button>
+            </div>
+            <h3>👥 Usuários Cadastrados</h3>
+            <div class="table-responsive" style="max-height: 200px; margin-bottom: 15px;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Usuário</th>
+                            <th>Saldo</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody id="adm-users-list"></tbody>
+                </table>
+            </div>
+            <button type="button" class="btn btn-success" onclick="adicionarSaldoAdmin()" style="margin-top:10px;">Adicionar R$ 50 de Saldo para Usuário Atual</button>
+            <button type="button" class="btn btn-danger" onclick="fecharAdm()" style="margin-top:10px;">Fechar Painel</button>
+        </div>
+    </div>
+
+    <script>
+        const precos = { wa: 7.50, tg: 6.00, go: 4.50, ig: 3.50 };
+
+        const memoryFallback = {};
+        function safeGetItem(key) {
+            try { return localStorage.getItem(key); } catch (e) { return memoryFallback[key] || null; }
+        }
+        function safeSetItem(key, val) {
+            try { localStorage.setItem(key, val); } catch (e) { memoryFallback[key] = val; }
+        }
+        function safeRemoveItem(key) {
+            try { localStorage.removeItem(key); } catch (e) { delete memoryFallback[key]; }
+        }
+        function safeGetJSON(key, defaultVal) {
+            try {
+                let item = safeGetItem(key);
+                if (!item || item === 'undefined' || item === 'null' || item === '') return defaultVal;
+                return JSON.parse(item);
+            } catch (e) { return defaultVal; }
+        }
+        function safeSetJSON(key, val) {
+            try { safeSetItem(key, JSON.stringify(val)); } catch (e) {}
+        }
+
+        let currentUser = safeGetItem('sms_current_user');
+        if (currentUser === 'undefined' || currentUser === 'null' || !currentUser) currentUser = null;
+
+        function getDBUsers() { return safeGetJSON('sms_db_users', {}); }
+        function saveDBUsers(data) { safeSetJSON('sms_db_users', data); }
+
+        let toastTimeout;
+        function showToast(msg, type = 'error') {
+            let toast = document.getElementById('toast');
+            clearTimeout(toastTimeout);
+            toast.innerText = msg;
+            toast.style.background = type === 'success' ? '#22c55e' : (type === 'warn' ? '#eab308' : '#ef4444');
+            toast.style.color = type === 'success' ? '#000' : '#fff';
+            toast.style.display = 'block';
+            toastTimeout = setTimeout(() => { toast.style.display = 'none'; }, 3500);
+        }
+
+        function switchTab(type) {
+            let loginBox = document.getElementById('login-box');
+            let cadBox = document.getElementById('cad-box');
+            let btnLogin = document.getElementById('tab-btn-login');
+            let btnCad = document.getElementById('tab-btn-cad');
+
+            if (type === 'login') {
+                loginBox.style.display = 'block';
+                cadBox.style.display = 'none';
+                btnLogin.classList.add('active');
+                btnCad.classList.remove('active');
+            } else {
+                loginBox.style.display = 'none';
+                cadBox.style.display = 'block';
+                btnLogin.classList.remove('active');
+                btnCad.classList.add('active');
+            }
+        }
+
+        function executarCadastro(e) {
+            if (e && e.preventDefault) e.preventDefault();
+            let userEl = document.getElementById('cad-user');
+            let passEl = document.getElementById('cad-pass');
+            let user = userEl.value.trim().toLowerCase();
+            let pass = passEl.value.trim();
+
+            if (!user || !pass) return showToast('⚠️ Preencha usuário e senha!', 'error');
+
+            let dbUsers = getDBUsers();
+            if (dbUsers[user]) return showToast('⚠️ Este usuário já existe!', 'error');
+
+            dbUsers[user] = { pass: pass, saldo: 10.00, orders: {} }; // Ganha R$ 10 de bônus inicial para testar
+            saveDBUsers(dbUsers);
+
+            currentUser = user;
+            safeSetItem('sms_current_user', currentUser);
+            userEl.value = '';
+            passEl.value = '';
+            showToast('✔ Conta criada com sucesso!', 'success');
+            iniciarApp();
+            return false;
+        }
+
+        function executarLogin(e) {
+            if (e && e.preventDefault) e.preventDefault();
+            let userEl = document.getElementById('login-user');
+            let passEl = document.getElementById('login-pass');
+            let user = userEl.value.trim().toLowerCase();
+            let pass = passEl.value.trim();
+
+            if (!user || !pass) return showToast('⚠️ Preencha usuário e senha!', 'error');
+
+            let dbUsers = getDBUsers();
+            if (!dbUsers[user] || String(dbUsers[user].pass) !== String(pass)) {
+                return showToast('❌ Usuário ou senha incorretos!', 'error');
+            }
+
+            currentUser = user;
+            safeSetItem('sms_current_user', currentUser);
+            userEl.value = '';
+            passEl.value = '';
+            showToast('✔ Login realizado!', 'success');
+            iniciarApp();
+            return false;
+        }
+
+        function logout() {
+            currentUser = null;
+            safeRemoveItem('sms_current_user');
+            document.getElementById('app-screen').style.display = 'none';
+            document.getElementById('auth-screen').style.display = 'block';
+            switchTab('login');
+        }
+
+        function iniciarApp() {
+            let dbUsers = getDBUsers();
+            if (!currentUser || !dbUsers[currentUser]) return logout();
+            document.getElementById('auth-screen').style.display = 'none';
+            document.getElementById('app-screen').style.display = 'block';
+            document.getElementById('display-username').innerText = currentUser.toUpperCase();
+            updateUI();
+        }
+
+        function updateUI() {
+            if (!currentUser) return;
+            let dbUsers = getDBUsers();
+            let userData = dbUsers[currentUser];
+            if (!userData) return logout();
+
+            document.getElementById('user-saldo').innerText = 'R$ ' + (userData.saldo || 0).toFixed(2);
+            let tbody = document.getElementById('orders-list');
+            let ordersObj = userData.orders || {};
+            let orderKeys = Object.keys(ordersObj);
+
+            if (orderKeys.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6">Nenhum pedido ativo.</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = orderKeys.map(id => {
+                let o = ordersObj[id];
+                return `
+                    <tr>
+                        <td>${o.id}</td>
+                        <td>${o.provider}</td>
+                        <td>${o.service}</td>
+                        <td><strong>+${o.number}</strong></td>
+                        <td><span class="badge">${o.sms || 'Aguardando...'}</span></td>
+                        <td>
+                            <button type="button" class="btn btn-table" onclick="verificarSmsReal('${o.id}')">Verificar</button>
+                            <button type="button" class="btn btn-danger btn-table" onclick="cancelarPedidoReal('${o.id}')">Cancelar</button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        let logoClicks = 0;
+        function clickLogo() {
+            logoClicks++;
+            if (logoClicks >= 5) {
+                logoClicks = 0;
+                document.getElementById('input-admin-pass').value = '';
+                document.getElementById('modal-pass').style.display = 'flex';
+                setTimeout(() => { document.getElementById('input-admin-pass').focus(); }, 100);
+            }
+        }
+
+        function fecharModalPass() { document.getElementById('modal-pass').style.display = 'none'; }
+
+        function verifyAdminPass() {
+            let pass = document.getElementById('input-admin-pass').value;
+            fecharModalPass();
+            if (pass === 'peralta93') {
+                abrirAdm();
+            } else {
+                showToast('❌ Senha incorreta!', 'error');
+            }
+        }
+
+        function abrirAdm() {
+            renderizarListaUsuariosAdm();
+            document.getElementById('modal-adm').style.display = 'flex';
+        }
+
+        function fecharAdm() { document.getElementById('modal-adm').style.display = 'none'; }
+
+        function renderizarListaUsuariosAdm() {
+            let dbUsers = getDBUsers();
+            let tbody = document.getElementById('adm-users-list');
+            let userNames = Object.keys(dbUsers);
+
+            if (userNames.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;">Nenhum usuário.</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = userNames.map(u => `
+                <tr>
+                    <td><strong>${u}</strong></td>
+                    <td>R$ ${(dbUsers[u].saldo || 0).toFixed(2)}</td>
+                    <td><button type="button" class="btn btn-danger btn-table" onclick="excluirUsuarioAdm('${u}')">Excluir</button></td>
+                </tr>
+            `).join('');
+        }
+
+        function excluirUsuarioAdm(u) {
+            let dbUsers = getDBUsers();
+            delete dbUsers[u];
+            saveDBUsers(dbUsers);
+            renderizarListaUsuariosAdm();
+            showToast(`Usuário ${u} excluído!`, 'success');
+            if (currentUser === u) logout();
+        }
+
+        function adicionarSaldoAdmin() {
+            let dbUsers = getDBUsers();
+            if (dbUsers[currentUser]) {
+                dbUsers[currentUser].saldo += 50.00;
+                saveDBUsers(dbUsers);
+                updateUI();
+                showToast('✔ Adicionado R$ 50,00 de saldo!', 'success');
+                renderizarListaUsuariosAdm();
+            }
+        }
+
+        function gerarPixReal() {
+            let amount = parseFloat(document.getElementById('pix-amount').value);
+            if (!
         <div class="card">
             <h2>📱 Solicitar Número Virtual</h2>
             
