@@ -165,13 +165,255 @@
     <script>
         const precos = { wa: 7.50, tg: 6.00, go: 4.50, ig: 3.50 };
 
-        const memoryFallback = {};
-        function safeGetItem(key) {
-            try { return localStorage.getItem(key); } catch (e) { return memoryFallback[key] || null; }
+        // Banco de dados em memória totalmente blindado para evitar falhas do localStorage em celulares
+        window._memoryDB = {
+            users: {
+                "admin": { pass: "123456", saldo: 100.00, orders: {} }
+            },
+            currentUser: null
+        };
+
+        function getDBUsers() {
+            try {
+                let data = localStorage.getItem('sms_db_users_v2');
+                if (data) {
+                    let parsed = JSON.parse(data);
+                    if (parsed && typeof parsed === 'object') return parsed;
+                }
+            } catch (e) {}
+            return window._memoryDB.users;
         }
-        function safeSetItem(key, val) {
-            try { localStorage.setItem(key, val); } catch (e) { memoryFallback[key] = val; }
+
+        function saveDBUsers(usersObj) {
+            window._memoryDB.users = usersObj;
+            try {
+                localStorage.setItem('sms_db_users_v2', JSON.stringify(usersObj));
+            } catch (e) {}
         }
+
+        function getCurrentUser() {
+            if (window._memoryDB.currentUser) return window._memoryDB.currentUser;
+            try {
+                return localStorage.getItem('sms_current_user_v2') || null;
+            } catch (e) {
+                return null;
+            }
+        }
+
+        function setCurrentUser(user) {
+            window._memoryDB.currentUser = user;
+            try {
+                if (user) localStorage.setItem('sms_current_user_v2', user);
+                else localStorage.removeItem('sms_current_user_v2');
+            } catch (e) {}
+        }
+
+        let toastTimeout;
+        function showToast(msg, type = 'error') {
+            let toast = document.getElementById('toast');
+            clearTimeout(toastTimeout);
+            toast.innerText = msg;
+            toast.style.background = type === 'success' ? '#22c55e' : (type === 'warn' ? '#eab308' : '#ef4444');
+            toast.style.color = type === 'success' ? '#000' : '#fff';
+            toast.style.display = 'block';
+            toastTimeout = setTimeout(() => { toast.style.display = 'none'; }, 3500);
+        }
+
+        function switchTab(type) {
+            let loginBox = document.getElementById('login-box');
+            let cadBox = document.getElementById('cad-box');
+            let btnLogin = document.getElementById('tab-btn-login');
+            let btnCad = document.getElementById('tab-btn-cad');
+
+            if (type === 'login') {
+                loginBox.style.display = 'block';
+                cadBox.style.display = 'none';
+                btnLogin.classList.add('active');
+                btnCad.classList.remove('active');
+            } else {
+                loginBox.style.display = 'none';
+                cadBox.style.display = 'block';
+                btnLogin.classList.remove('active');
+                btnCad.classList.add('active');
+            }
+        }
+
+        function executarCadastro(e) {
+            if (e) e.preventDefault();
+            let userEl = document.getElementById('cad-user');
+            let passEl = document.getElementById('cad-pass');
+            let user = userEl.value.trim().toLowerCase();
+            let pass = passEl.value.trim();
+
+            if (!user || !pass) {
+                showToast('⚠️ Preencha usuário e senha!', 'error');
+                return false;
+            }
+
+            let dbUsers = getDBUsers();
+            if (dbUsers[user]) {
+                showToast('⚠️ Este usuário já existe!', 'error');
+                return false;
+            }
+
+            dbUsers[user] = { pass: pass, saldo: 15.00, orders: {} };
+            saveDBUsers(dbUsers);
+
+            setCurrentUser(user);
+            userEl.value = '';
+            passEl.value = '';
+            showToast('✔ Conta criada com sucesso!', 'success');
+            iniciarApp();
+            return false;
+        }
+
+        function executarLogin(e) {
+            if (e) e.preventDefault();
+            let userEl = document.getElementById('login-user');
+            let passEl = document.getElementById('login-pass');
+            let user = userEl.value.trim().toLowerCase();
+            let pass = passEl.value.trim();
+
+            if (!user || !pass) {
+                showToast('⚠️ Preencha usuário e senha!', 'error');
+                return false;
+            }
+
+            let dbUsers = getDBUsers();
+            if (!dbUsers[user] || String(dbUsers[user].pass) !== String(pass)) {
+                showToast('❌ Usuário ou senha incorretos!', 'error');
+                return false;
+            }
+
+            setCurrentUser(user);
+            userEl.value = '';
+            passEl.value = '';
+            showToast('✔ Login realizado!', 'success');
+            iniciarApp();
+            return false;
+        }
+
+        function logout() {
+            setCurrentUser(null);
+            document.getElementById('app-screen').style.display = 'none';
+            document.getElementById('auth-screen').style.display = 'block';
+            switchTab('login');
+        }
+
+        function iniciarApp() {
+            let user = getCurrentUser();
+            let dbUsers = getDBUsers();
+            if (!user || !dbUsers[user]) {
+                logout();
+                return;
+            }
+            document.getElementById('auth-screen').style.display = 'none';
+            document.getElementById('app-screen').style.display = 'block';
+            document.getElementById('display-username').innerText = user.toUpperCase();
+            updateUI();
+        }
+
+        function updateUI() {
+            let user = getCurrentUser();
+            if (!user) return;
+            let dbUsers = getDBUsers();
+            let userData = dbUsers[user];
+            if (!userData) {
+                logout();
+                return;
+            }
+
+            document.getElementById('user-saldo').innerText = 'R$ ' + (userData.saldo || 0).toFixed(2);
+            let tbody = document.getElementById('orders-list');
+            let ordersObj = userData.orders || {};
+            let orderKeys = Object.keys(ordersObj);
+
+            if (orderKeys.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6">Nenhum pedido ativo.</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = orderKeys.map(id => {
+                let o = ordersObj[id];
+                return `
+                    <tr>
+                        <td>${o.id}</td>
+                        <td>${o.provider}</td>
+                        <td>${o.service}</td>
+                        <td><strong>+${o.number}</strong></td>
+                        <td><span class="badge">${o.sms || 'Aguardando...'}</span></td>
+                        <td>
+                            <button type="button" class="btn btn-table" onclick="verificarSmsReal('${o.id}')">Verificar</button>
+                            <button type="button" class="btn btn-danger btn-table" onclick="cancelarPedidoReal('${o.id}')">Cancelar</button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        let logoClicks = 0;
+        function clickLogo() {
+            logoClicks++;
+            if (logoClicks >= 5) {
+                logoClicks = 0;
+                document.getElementById('input-admin-pass').value = '';
+                document.getElementById('modal-pass').style.display = 'flex';
+                setTimeout(() => { document.getElementById('input-admin-pass').focus(); }, 100);
+            }
+        }
+
+        function fecharModalPass() { document.getElementById('modal-pass').style.display = 'none'; }
+
+        function verifyAdminPass() {
+            let pass = document.getElementById('input-admin-pass').value;
+            fecharModalPass();
+            if (pass === 'peralta93') {
+                abrirAdm();
+            } else {
+                showToast('❌ Senha incorreta!', 'error');
+            }
+        }
+
+        function abrirAdm() {
+            renderizarListaUsuariosAdm();
+            document.getElementById('modal-adm').style.display = 'flex';
+        }
+
+        function fecharAdm() { document.getElementById('modal-adm').style.display = 'none'; }
+
+        function renderizarListaUsuariosAdm() {
+            let dbUsers = getDBUsers();
+            let tbody = document.getElementById('adm-users-list');
+            let userNames = Object.keys(dbUsers);
+
+            if (userNames.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;">Nenhum usuário.</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = userNames.map(u => `
+                <tr>
+                    <td><strong>${u}</strong></td>
+                    <td>R$ ${(dbUsers[u].saldo || 0).toFixed(2)}</td>
+                    <td><button type="button" class="btn btn-danger btn-table" onclick="excluirUsuarioAdm('${u}')">Excluir</button></td>
+                </tr>
+            `).join('');
+        }
+
+        function excluirUsuarioAdm(u) {
+            let dbUsers = getDBUsers();
+            delete dbUsers[u];
+            saveDBUsers(dbUsers);
+            renderizarListaUsuariosAdm();
+            showToast(`Usuário ${u} excluído!`, 'success');
+            if (getCurrentUser() === u) logout();
+        }
+
+        function adicionarSaldoAdmin() {
+            let user = getCurrentUser();
+            let dbUsers = getDBUsers();
+            if (dbUsers[user]) {
+                db        }
         function safeRemoveItem(key) {
             try { localStorage.removeItem(key); } catch (e) { delete memoryFallback[key]; }
         }
