@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SMS ATIVO - Painel VIP</title>
+    <title>SMS ATIVO - Painel Oficial</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
         body { background: #0f172a; color: #f8fafc; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; padding: 15px; }
@@ -75,20 +75,12 @@
             <p>Saldo Atual: <strong id="user-saldo" style="color: #4ade80; font-size: 22px;">R$ 0,00</strong></p>
             <h3>Recarregar Saldo via PIX</h3>
             <input type="number" id="pix-amount" placeholder="Valor em R$ (Ex: 10.00)" step="0.5">
-            <button class="btn" onclick="gerarPix()">Gerar PIX Automático</button>
+            <button class="btn" onclick="gerarPixReal()">Gerar PIX Mercado Pago</button>
             <div id="pix-result" style="margin-top: 15px; word-break: break-all; color: #fbbf24;"></div>
         </div>
 
         <div class="card">
             <h2>📱 Solicitar Número Virtual</h2>
-            <label style="font-size: 12px; color: #94a3b8;">Provedor:</label>
-            <select id="select-provider">
-                <option value="smsact">SMS-Activate</option>
-                <option value="grizzly">Grizzly SMS</option>
-                <option value="smsman">SMS Man</option>
-                <option value="fivesim">5Sim</option>
-            </select>
-
             <label style="font-size: 12px; color: #94a3b8;">Serviço:</label>
             <select id="select-service">
                 <option value="wa">WhatsApp (R$ 7,50)</option>
@@ -96,8 +88,7 @@
                 <option value="go">Google / Gmail (R$ 4,50)</option>
                 <option value="ig">Instagram (R$ 3,50)</option>
             </select>
-
-            <button class="btn" onclick="solicitarNumero()">Alocar Número</button>
+            <button class="btn" onclick="solicitarNumeroReal()">Alocar Número Real</button>
         </div>
 
         <div class="card">
@@ -107,7 +98,363 @@
                     <thead>
                         <tr>
                             <th>ID</th>
-                            <th>Provedor</th>
+                            <th>Serviço</th>
+                            <th>Número</th>
+                            <th>SMS / Código</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody id="orders-list">
+                        <tr><td colspan="5">Nenhum pedido ativo.</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div id="modal-adm" class="modal">
+        <div class="modal-content">
+            <div class="adm-header">
+                <h2 style="margin:0; color:#ef4444; font-size: 18px;">⚙️ PAINEL ADMINISTRATIVO</h2>
+                <button class="btn btn-danger" onclick="fecharAdm()" style="padding:6px 12px; width:auto;">X</button>
+            </div>
+            
+            <h3>👥 Usuários Cadastrados</h3>
+            <div class="table-responsive" style="max-height: 200px; margin-bottom: 15px;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Usuário</th>
+                            <th>Saldo</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody id="adm-users-list"></tbody>
+                </table>
+            </div>
+
+            <hr style="border-color:#334155; margin: 15px 0;">
+
+            <h3>🔑 Chaves de API Reais</h3>
+            <label style="font-size:11px; color:#94a3b8;">Access Token Mercado Pago:</label>
+            <input type="text" id="adm-mp-token">
+            
+            <label style="font-size:11px; color:#94a3b8;">SMS-Activate API Key:</label>
+            <input type="text" id="adm-smsact-key">
+
+            <button class="btn" style="margin-top:10px;" onclick="salvarChavesAdm()">Salvar Chaves</button>
+        </div>
+    </div>
+
+    <script>
+        const DEFAULT_KEYS = {
+            mp: "APP_USR-2362596823763937-062812-908d117f88117bc73ab02aa7037fbab9-1882995106",
+            smsact: "2da2c5408f6af8f700c1a93eef85be1f0c895c19e25df6db123eeb2a099a1c5a"
+        };
+
+        function getDBUsers() {
+            try {
+                let data = localStorage.getItem('sms_db_users');
+                return data ? JSON.parse(data) : {};
+            } catch(e) { return {}; }
+        }
+
+        function saveDBUsers(data) {
+            localStorage.setItem('sms_db_users', JSON.stringify(data));
+        }
+
+        let keys = JSON.parse(localStorage.getItem('sms_api_keys') || JSON.stringify(DEFAULT_KEYS));
+        let currentUser = localStorage.getItem('sms_current_user') || null;
+        const precos = { wa: 7.50, tg: 6.00, go: 4.50, ig: 3.50 };
+
+        function toggleAuth(type) {
+            document.getElementById('login-box').style.display = type === 'login' ? 'block' : 'none';
+            document.getElementById('cad-box').style.display = type === 'cad' ? 'block' : 'none';
+        }
+
+        function fazerCadastro() {
+            let user = document.getElementById('cad-user').value.trim().toLowerCase();
+            let pass = document.getElementById('cad-pass').value.trim();
+            if (!user || !pass) return alert('⚠️ Preencha usuário e senha!');
+
+            let dbUsers = getDBUsers();
+            if (dbUsers[user]) return alert('⚠️ Este usuário já existe!');
+
+            dbUsers[user] = { pass: pass, saldo: 0.00, orders: {} };
+            saveDBUsers(dbUsers);
+
+            currentUser = user;
+            localStorage.setItem('sms_current_user', currentUser);
+            alert('✔ Conta criada com sucesso!');
+            iniciarApp();
+        }
+
+        function fazerLogin() {
+            let user = document.getElementById('login-user').value.trim().toLowerCase();
+            let pass = document.getElementById('login-pass').value.trim();
+            if (!user || !pass) return alert('⚠️ Preencha usuário e senha!');
+
+            let dbUsers = getDBUsers();
+            if (!dbUsers[user] || String(dbUsers[user].pass) !== String(pass)) {
+                return alert('❌ Usuário ou senha incorretos!');
+            }
+
+            currentUser = user;
+            localStorage.setItem('sms_current_user', currentUser);
+            iniciarApp();
+        }
+
+        function logout() {
+            currentUser = null;
+            localStorage.removeItem('sms_current_user');
+            document.getElementById('app-screen').style.display = 'none';
+            document.getElementById('auth-screen').style.display = 'block';
+        }
+
+        function iniciarApp() {
+            let dbUsers = getDBUsers();
+            if (!currentUser || !dbUsers[currentUser]) return logout();
+            document.getElementById('auth-screen').style.display = 'none';
+            document.getElementById('app-screen').style.display = 'block';
+            document.getElementById('display-username').innerText = currentUser.toUpperCase();
+            updateUI();
+        }
+
+        function updateUI() {
+            if (!currentUser) return;
+            let dbUsers = getDBUsers();
+            let userData = dbUsers[currentUser];
+            if (!userData) return logout();
+
+            document.getElementById('user-saldo').innerText = 'R$ ' + (userData.saldo || 0).toFixed(2);
+            let tbody = document.getElementById('orders-list');
+            let ordersObj = userData.orders || {};
+            let orderKeys = Object.keys(ordersObj);
+
+            if (orderKeys.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5">Nenhum pedido ativo.</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = orderKeys.map(id => {
+                let o = ordersObj[id];
+                return `
+                    <tr>
+                        <td>${o.id}</td>
+                        <td>${o.service}</td>
+                        <td><strong>+${o.number}</strong></td>
+                        <td><span class="badge">${o.sms || 'Aguardando SMS...'}</span></td>
+                        <td>
+                            <button class="btn btn-table" onclick="verificarSmsReal('${o.id}')">Verificar</button>
+                            <button class="btn btn-danger btn-table" onclick="cancelarPedidoReal('${o.id}')">Cancelar</button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        let logoClicks = 0;
+        function clickLogo() {
+            logoClicks++;
+            if (logoClicks >= 5) {
+                logoClicks = 0;
+                let pass = prompt('🔐 Senha do Administrador:');
+                if (pass === 'peralta93') abrirAdm();
+            }
+        }
+
+        function abrirAdm() {
+            document.getElementById('adm-mp-token').value = keys.mp;
+            document.getElementById('adm-smsact-key').value = keys.smsact;
+            renderizarListaUsuariosAdm();
+            document.getElementById('modal-adm').style.display = 'flex';
+        }
+
+        function fecharAdm() { document.getElementById('modal-adm').style.display = 'none'; }
+
+        function renderizarListaUsuariosAdm() {
+            let dbUsers = getDBUsers();
+            let tbody = document.getElementById('adm-users-list');
+            let userNames = Object.keys(dbUsers);
+
+            if (userNames.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;">Nenhum usuário.</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = userNames.map(u => `
+                <tr>
+                    <td><strong>${u}</strong></td>
+                    <td>R$ ${(dbUsers[u].saldo || 0).toFixed(2)}</td>
+                    <td><button class="btn btn-danger btn-table" onclick="excluirUsuarioAdm('${u}')">Excluir</button></td>
+                </tr>
+            `).join('');
+        }
+
+        function excluirUsuarioAdm(u) {
+            if (confirm(`Excluir ${u}?`)) {
+                let dbUsers = getDBUsers();
+                delete dbUsers[u];
+                saveDBUsers(dbUsers);
+                renderizarListaUsuariosAdm();
+                if (currentUser === u) logout();
+            }
+        }
+
+        function salvarChavesAdm() {
+            keys.mp = document.getElementById('adm-mp-token').value;
+            keys.smsact = document.getElementById('adm-smsact-key').value;
+            localStorage.setItem('sms_api_keys', JSON.stringify(keys));
+            alert('✔ Chaves salvas com sucesso!');
+            fecharAdm();
+        }
+
+        // GERAR PIX REAL VIA MERCADO PAGO (SEM SIMULAÇÃO)
+        async function gerarPixReal() {
+            let amount = parseFloat(document.getElementById('pix-amount').value);
+            if (!amount || amount <= 0) return alert('Digite um valor válido para o Pix.');
+            if (!keys.mp) return alert('Token do Mercado Pago não configurado.');
+
+            try {
+                document.getElementById('pix-result').innerHTML = 'Conectando ao Mercado Pago...';
+                let response = await fetch('https://api.mercadopago.com/v1/payments', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${keys.mp}`,
+                        'Content-Type': 'application/json',
+                        'X-Idempotency-Key': 'IDEM-' + Date.now()
+                    },
+                    body: JSON.stringify({
+                        transaction_amount: amount,
+                        description: `Recarga Painel SMS - ${currentUser}`,
+                        payment_method_id: 'pix',
+                        payer: { email: `${currentUser}@smsativo.com` }
+                    })
+                });
+
+                let data = await response.json();
+                if (data.id && data.point_of_interaction) {
+                    let qrCode = data.point_of_interaction.transaction_data.qr_code;
+                    document.getElementById('pix-result').innerHTML = `
+                        <p style="color:#4ade80; margin-bottom:5px;">Pix Gerado! Copie o código abaixo:</p>
+                        <textarea style="width:100%; height:70px; background:#0f172a; color:#fff; border:1px solid #334155; padding:8px; font-size:12px;" readonly>${qrCode}</textarea>
+                        <p style="font-size:11px; color:#94a3b8; margin-top:5px;">Realize o pagamento no seu banco. O saldo precisa ser creditado via Webhook oficial.</p>
+                    `;
+                } else {
+                    document.getElementById('pix-result').innerHTML = `<span style="color:#ef4444;">Erro ao gerar Pix: ${data.message || 'Verifique o Token.'}</span>`;
+                }
+            } catch (e) {
+                alert('Erro de conexão com o Mercado Pago: ' + e.message);
+            }
+        }
+
+        // ALOCAR NÚMERO REAL NA API SMS-ACTIVATE
+        async function solicitarNumeroReal() {
+            let service = document.getElementById('select-service').value;
+            let custo = precos[service] || 5.00;
+
+            let dbUsers = getDBUsers();
+            if (!dbUsers[currentUser]) return logout();
+
+            if (dbUsers[currentUser].saldo < custo) {
+                return alert(`Saldo insuficiente! Custo necessário: R$ ${custo.toFixed(2)}`);
+            }
+
+            if (!keys.smsact) return alert('Chave da SMS-Activate não configurada nas configurações.');
+
+            try {
+                document.getElementById('select-service').disabled = true;
+                let targetUrl = `https://api.sms-activate.org/stubs/handler_api.php?api_key=${keys.smsact}&action=getNumber&service=${service}&country=73`;
+                
+                let res = await fetch(`https://api.allorigins.win/raw?url=${encodeURIComponent(targetUrl)}`);
+                let text = await res.text();
+
+                if (text && text.includes('ACCESS_NUMBER')) {
+                    let parts = text.split(':');
+                    let orderId = parts[1];
+                    let phoneNumber = parts[2];
+
+                    dbUsers[currentUser].saldo -= custo;
+                    if (!dbUsers[currentUser].orders) dbUsers[currentUser].orders = {};
+
+                    dbUsers[currentUser].orders[orderId] = {
+                        id: orderId,
+                        service: service.toUpperCase(),
+                        number: phoneNumber,
+                        sms: null,
+                        custo: custo
+                    };
+
+                    saveDBUsers(dbUsers);
+                    updateUI();
+                    alert(`Número alocado com sucesso: +${phoneNumber}`);
+                } else {
+                    alert(`Erro da API SMS-Activate: ${text}`);
+                }
+            } catch (e) {
+                alert('Erro ao alocar número real: ' + e.message);
+            } finally {
+                document.getElementById('select-service').disabled = false;
+            }
+        }
+
+        // VERIFICAR SMS REAL NA API SMS-ACTIVATE
+        async function verificarSmsReal(orderId) {
+            let dbUsers = getDBUsers();
+            if (!dbUsers[currentUser] || !dbUsers[currentUser].orders) return;
+            let o = dbUsers[currentUser].orders[orderId];
+            if (!o) return;
+
+            try {
+                let targetUrl = `https://api.sms-activate.org/stubs/handler_api.php?api_key=${keys.smsact}&action=getStatus&id=${orderId}`;
+                let res = await fetch(`https://api.allorigins.win/raw?url=${encodeURIComponent(targetUrl)}`);
+                let text = await res.text();
+
+                if (text && text.includes('STATUS_OK')) {
+                    let code = text.split(':')[1];
+                    o.sms = code;
+                    saveDBUsers(dbUsers);
+                    updateUI();
+                    alert(`🎉 SMS RECEBIDO: ${code}`);
+                } else {
+                    alert(`Status atual na operadora: ${text}`);
+                }
+            } catch (e) {
+                alert('Erro ao checar SMS na API.');
+            }
+        }
+
+        // CANCELAR PEDIDO E REEMBOLSAR SALDO
+        async function cancelarPedidoReal(orderId) {
+            let dbUsers = getDBUsers();
+            if (!dbUsers[currentUser] || !dbUsers[currentUser].orders) return;
+            let o = dbUsers[currentUser].orders[orderId];
+            if (!o) return;
+
+            try {
+                let targetUrl = `https://api.sms-activate.org/stubs/handler_api.php?api_key=${keys.smsact}&action=setStatus&status=8&id=${orderId}`;
+                await fetch(`https://api.allorigins.win/raw?url=${encodeURIComponent(targetUrl)}`);
+
+                dbUsers[currentUser].saldo += o.custo;
+                delete dbUsers[currentUser].orders[orderId];
+                saveDBUsers(dbUsers);
+                updateUI();
+                alert('✔ Pedido cancelado e valor reembolsado para a sua conta!');
+            } catch (e) {
+                alert('Erro ao cancelar na API, mas o reembolso local foi efetuado.');
+                dbUsers[currentUser].saldo += o.custo;
+                delete dbUsers[currentUser].orders[orderId];
+                saveDBUsers(dbUsers);
+                updateUI();
+            }
+        }
+
+        window.onload = function() {
+            if (currentUser) iniciarApp();
+        };
+    </script>
+</body>
+</html>                            <th>Provedor</th>
                             <th>Serviço</th>
                             <th>Número</th>
                             <th>SMS</th>
